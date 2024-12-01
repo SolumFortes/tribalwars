@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         Automatické farmaření ve hře Divoké Kmeny
+// @name         MassScavenge
 // @namespace    http://tampermonkey.net/
 // @version      1.9
-// @description  Automatické farmaření s přirozenějšími intervaly pro lidské chování a cílením na správné tlačítko, s možností zapnutí/vypnutí
-// @author       Tvé jméno
+// @description  Automatic mass sending of scavenge
+// @author       Wwww
 // @match        https://*.divokekmeny.cz/game.php*
 // @grant        none
 // ==/UserScript==
@@ -13,6 +13,7 @@
 
     // Načteme stav tlačítka z localStorage, pokud je uložen
     let premiumBtnEnabled = localStorage.getItem('premiumBtnEnabled') === 'true';
+    let countdownTimer;
 
     // Funkce pro přechod na stránku pro sběr surovin
     function goToScavengePage() {
@@ -39,12 +40,18 @@
                 // Spočítáme celkový čas v sekundách
                 let totalSeconds = hours * 3600 + minutes * 60 + seconds;
 
-                // Pokud je čas k dispozici, přidáme 2 minuty a nastavíme pauzu
+                // Pokud je čas k dispozici, přidáme 1 minutu (60 sekund) a nastavíme pauzu
                 if (totalSeconds > 0) {
-                    console.log(`Čas do spuštění sběru: ${totalSeconds} sekund. Pauza před hromadným sběrem: ${totalSeconds + 120} sekund.`);
-                    setTimeout(function() {
-                        performMassScavenge();
-                    }, (totalSeconds + 120) * 1000);  // Po uplynutí času + 2 minuty spustíme sběr
+                    console.log(`Čas do spuštění sběru: ${totalSeconds} sekund. Pauza před hromadným sběrem: ${totalSeconds + 60} sekund.`);
+                    updateCountdown(totalSeconds + 60);  // Aktualizujeme odpočet
+                    countdownTimer = setInterval(function() {
+                        totalSeconds -= 1;
+                        updateCountdown(totalSeconds);  // Reálně odpočítáváme sekundy
+                        if (totalSeconds <= 0) {
+                            clearInterval(countdownTimer);
+                            performMassScavenge();
+                        }
+                    }, 1000);  // Každou sekundu aktualizujeme čas
                 } else {
                     // Pokud není čas, spustíme sběr ihned
                     performMassScavenge();
@@ -64,7 +71,6 @@
                 checkAndCheckFields();
                 performRandomActions();  // Spustí provádění akcí v náhodných intervalech
                 launchGroup1();  // Klikne na tlačítko "Launch group 1"
-                scheduleNextRun();  // Naplánuje opakování procesu za hodinu a 1 minutu
             })
             .fail(function() {
                 console.error('Skript pro hromadný sběr se nepodařilo načíst.');
@@ -140,45 +146,71 @@
         }
     }
 
-    // Funkce pro naplánování opakování procesu
-    function scheduleNextRun() {
-        setTimeout(function() {
-            startMassScavenge();  // Opakujeme celý proces po hodině a jedné minutě (3660 sekund)
-        }, 3660000);  // 3660 sekund = 1 hodina + 1 minuta
+    // Funkce pro aktualizaci a zobrazení odpočtu
+    function updateCountdown(seconds) {
+        const countdownDisplay = document.getElementById('countdownDisplay');
+        if (countdownDisplay) {
+            countdownDisplay.textContent = `Sběr za: ${formatTime(seconds)}`;
+        }
     }
 
-    // Vytvoření tlačítka pro zapnutí/vypnutí
+    // Funkce pro formátování času (sekundy na HH:MM:SS)
+    function formatTime(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    }
+
+    // Vytvoření tlačítka pro zapnutí/vypnutí hromadného sběru
     let massScavengeButton = document.createElement('button');
-    massScavengeButton.innerText = premiumBtnEnabled ? 'MassScavenge - ON' : 'MassScavenge - OFF';
+    massScavengeButton.textContent = premiumBtnEnabled ? 'MassScavenge - ON' : 'MassScavenge - OFF';
     massScavengeButton.style.position = 'fixed';
     massScavengeButton.style.left = '10px';
     massScavengeButton.style.top = '50%';
     massScavengeButton.style.transform = 'translateY(-50%)';
-    massScavengeButton.style.padding = '10px';
+    massScavengeButton.style.padding = '12px 24px';
+    massScavengeButton.style.fontSize = '16px';
+    massScavengeButton.style.fontWeight = 'bold';
     massScavengeButton.style.border = 'none';
     massScavengeButton.style.color = 'white';
+    massScavengeButton.style.backgroundColor = premiumBtnEnabled ? '#4CAF50' : '#F44336';
+    massScavengeButton.style.borderRadius = '8px';
     massScavengeButton.style.cursor = 'pointer';
     massScavengeButton.style.zIndex = '1000';
-    massScavengeButton.style.borderRadius = '5px';
-    massScavengeButton.style.backgroundColor = premiumBtnEnabled ? 'green' : 'red';
-
-    // Připojení tlačítka na stránku
-    document.body.appendChild(massScavengeButton);
-
-    // Funkce pro přepnutí stavu hromadného sběru
+    massScavengeButton.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
     massScavengeButton.addEventListener('click', function() {
-        premiumBtnEnabled = !premiumBtnEnabled;  // Přepne stav
-        localStorage.setItem('premiumBtnEnabled', premiumBtnEnabled);  // Uložíme stav do localStorage
-
+        premiumBtnEnabled = !premiumBtnEnabled;
+        localStorage.setItem('premiumBtnEnabled', premiumBtnEnabled);
+        massScavengeButton.style.backgroundColor = premiumBtnEnabled ? '#4CAF50' : '#F44336';
+        massScavengeButton.innerText = premiumBtnEnabled ? 'MassScavenge - ON' : 'MassScavenge - OFF';
         if (premiumBtnEnabled) {
-            massScavengeButton.style.backgroundColor = 'green';
-            massScavengeButton.innerText = 'MassScavenge - ON';
-            startMassScavenge();  // Pokud je zapnuto, začneme s hromadným sběrem
-        } else {
-            massScavengeButton.style.backgroundColor = 'red';
-            massScavengeButton.innerText = 'MassScavenge - OFF';
+            startMassScavenge();
         }
     });
+
+    // Vytvoření elementu pro zobrazení odpočtu
+    let countdownText = document.createElement('div');
+    countdownText.id = 'countdownDisplay';
+    countdownText.style.position = 'fixed';
+    countdownText.style.left = '10px';
+    countdownText.style.top = '60%';  // Posunuto o 100px níž
+    countdownText.style.transform = 'translateY(-50%)';
+    countdownText.style.color = '#FFF';
+    countdownText.style.fontSize = '20px';
+    countdownText.style.fontWeight = 'bold';
+    countdownText.style.zIndex = '1000';
+    countdownText.style.padding = '8px 12px';
+    countdownText.style.backgroundColor = '#1976D2';  // Modrá pro lepší kontrast
+    countdownText.style.borderRadius = '6px';
+    countdownText.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    countdownText.style.display = 'flex';
+    countdownText.style.alignItems = 'center';
+    countdownText.style.justifyContent = 'center';
+
+    // Připojení tlačítka a odpočtu na stránku
+    document.body.appendChild(massScavengeButton);
+    document.body.appendChild(countdownText);
 
     // Pokud je skript zapnutý při načtení, okamžitě začneme s hromadným sběrem
     if (premiumBtnEnabled) {
