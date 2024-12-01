@@ -1,0 +1,161 @@
+// ==UserScript==
+// @name         Automatické farmaření ve hře Divoké Kmeny
+// @namespace    http://tampermonkey.net/
+// @version      1.4
+// @description  Automatické farmaření s přirozenějšími intervaly pro lidské chování a cílením na správné tlačítko, s možností zapnutí/vypnutí
+// @author       Tvé jméno
+// @match        https://*.divokekmeny.cz/game.php*
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    // ========================
+    // KONFIGURACE
+    // ========================
+    const farmDelayMin = 1000; // Minimální zpoždění mezi odesláním útoků (v ms)
+    const farmDelayMax = 2000; // Maximální zpoždění mezi odesláním útoků (v ms)
+    const sendUnitsTimes = 5; // Kolikrát kliknout na odeslání jednotek, než obnovíme stránku
+    const farmIconsSelector = '.farm_icon_a'; // Selektor pro tlačítka pro odeslání jednotek
+    const helperFarmButtonSelector = 'a#manager_icon_farm'; // Selektor pro tlačítko Pomocník rabování
+
+    // Stav skriptu (zapnuto/vypnuto)
+    let isScriptActive = false;
+
+    // ========================
+    // Vytvoření tlačítka pro zapnutí/vypnutí skriptu
+    // ========================
+    function createToggleButton() {
+        const button = document.createElement("button");
+        button.innerHTML = "AutoFarm: Vypnuto"; // Tlačítko bude výchozí jako vypnuté
+        button.style.position = "fixed";
+        button.style.top = "50%"; // Umístíme tlačítko přibližně do poloviny stránky
+        button.style.left = "10px";    // Umístíme tlačítko k levé straně
+        button.style.transform = "translateY(-50%)"; // Pro vycentrování vertikálně
+        button.style.zIndex = "1000";
+        button.style.padding = "15px 30px";
+        button.style.backgroundColor = "#28a745"; // Zelená barva pro vypnutý stav
+        button.style.color = "white";
+        button.style.fontSize = "16px";
+        button.style.border = "none";
+        button.style.borderRadius = "5px";
+        button.style.cursor = "pointer";
+        button.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.3)";
+        
+        // Zajištění, že tlačítko bude viditelné i při skrolování
+        button.style.transition = "background-color 0.3s, color 0.3s";
+
+        button.onclick = function() {
+            // Přepínáme stav skriptu
+            isScriptActive = !isScriptActive;
+
+            if (isScriptActive) {
+                button.innerHTML = "AutoFarm: Zapnuto"; // Změní text na Zapnuto
+                button.style.backgroundColor = "#dc3545"; // Červená barva pro aktivní stav
+                startFarming(); // Začne farmaření
+            } else {
+                button.innerHTML = "AutoFarm: Vypnuto"; // Změní text na Vypnuto
+                button.style.backgroundColor = "#28a745"; // Zelená barva pro neaktivní stav
+            }
+        };
+
+        document.body.appendChild(button); // Přidáme tlačítko do stránky
+    }
+
+    // ========================
+    // FCE: Kliknutí na pomocníka rabování
+    // ========================
+    function clickFarmHelper() {
+        const farmHelperButton = document.querySelector(helperFarmButtonSelector);
+
+        if (!farmHelperButton) {
+            console.error("Nebyl nalezen odkaz na pomocníka rabování.");
+            return;
+        }
+
+        // Simulace kliknutí s náhodným zpožděním
+        const clickEvent = new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window
+        });
+
+        farmHelperButton.dispatchEvent(clickEvent);
+        console.log("Kliknuto na pomocníka rabování.");
+
+        // Po kliknutí přidáme malé zpoždění
+        const randomDelay = getRandomDelay();
+        setTimeout(() => {
+            clickSendUnits();
+        }, randomDelay);
+    }
+
+    // ========================
+    // FCE: Automatické klikání na odeslání jednotek
+    // ========================
+    let clickCount = 0; // Počet kliknutí
+
+    function clickSendUnits() {
+        if (!isScriptActive) return; // Pokud je skript vypnutý, nic neděláme
+
+        const farmIcons = document.querySelectorAll(farmIconsSelector);
+
+        if (farmIcons.length === 0) {
+            console.error("Nebyl nalezen žádný odkaz pro odeslání jednotek.");
+            return;
+        }
+
+        // Vybereme náhodný odkaz pro odeslání jednotek
+        const link = farmIcons[Math.floor(Math.random() * farmIcons.length)];
+
+        // Simulace kliknutí na odeslání jednotek s náhodným zpožděním
+        const clickEvent = new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window
+        });
+
+        link.dispatchEvent(clickEvent);
+        console.log("Kliknutí na odeslání jednotek.");
+
+        clickCount++; // Zvýšíme počet kliknutí
+
+        // Pokud jsme klikli 5krát, obnovíme stránku
+        if (clickCount >= sendUnitsTimes) {
+            console.log("Kliknuto 5krát, obnovujeme stránku.");
+            location.reload(); // Obnovíme stránku po 5 kliknutích
+        } else {
+            // Po kliknutí přidáme zpoždění před dalším kliknutím
+            const randomDelay = getRandomDelay();
+            setTimeout(() => {
+                clickSendUnits();
+            }, randomDelay);
+        }
+    }
+
+    // ========================
+    // FCE: Generování náhodného zpoždění
+    // ========================
+    function getRandomDelay() {
+        return Math.floor(Math.random() * (farmDelayMax - farmDelayMin + 1)) + farmDelayMin;
+    }
+
+    // ========================
+    // Hlavní logika skriptu
+    // ========================
+
+    // Vytvoříme tlačítko pro zapnutí/vypnutí
+    createToggleButton();
+
+    // Funkce pro zahájení farmaření (klikání na pomocníka a odesílání jednotek)
+    function startFarming() {
+        if (!window.location.href.includes("screen=am_farm")) {
+            clickFarmHelper(); // Klikneme na pomocníka rabování
+        } else {
+            // Jakmile jsme na stránce farmy, začneme odesílat jednotky
+            clickSendUnits(); // Klikneme na první odkaz pro odeslání jednotek
+        }
+    }
+
+})();
