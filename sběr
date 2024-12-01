@@ -11,7 +11,9 @@
 (function() {
     'use strict';
 
-    // Funkce pro spuštění skriptu pro hromadný sběr
+    let premiumBtnEnabled = localStorage.getItem('premiumBtnEnabled') === 'true'; // Načteme uložený stav
+
+    // Funkce pro spuštění hromadného sběru
     function startMassScavenge() {
         $.getScript('https://shinko-to-kuma.com/scripts/massScavenge.js')
             .done(function() {
@@ -68,14 +70,19 @@
         if (premiumBtnEnabled) {
             massScavengeButton.style.backgroundColor = 'green';
             massScavengeButton.innerText = 'MassScavenge - ON';
+            startMassScavenge(); // Spustíme skript pro hromadný sběr, když je zapnuto
         } else {
             massScavengeButton.style.backgroundColor = 'red';
             massScavengeButton.innerText = 'MassScavenge - OFF';
+            stopMassScavenge(); // Zastavíme skript pro hromadný sběr, když je vypnuto
         }
     }
 
-    // Načtení stavu z localStorage, pokud je uložen
-    let premiumBtnEnabled = localStorage.getItem('premiumBtnEnabled') === 'true';
+    // Funkce pro zastavení hromadného sběru (pouze pokud je zapnutý)
+    function stopMassScavenge() {
+        // Zde je možné přidat jakýkoliv kód pro deaktivaci skriptu, například zastavení intervalů nebo jiných akcí
+        console.log('Hromadné farmaření zastaveno.');
+    }
 
     // Vytvoření tlačítka
     let massScavengeButton = document.createElement('button');
@@ -100,11 +107,8 @@
 
     // Pokud je hromadný sběr zapnutý, spustí skript
     if (premiumBtnEnabled) {
-        $.getScript('https://shinko-to-kuma.com/scripts/massScavenge.js');  // Načte skript pro hromadný sběr
+        startMassScavenge();  // Načte a spustí hromadný sběr
     }
-
-    // Nejprve spustíme hromadný sběr, jakmile se načte stránka
-    startMassScavenge();
 
     // Funkce pro provádění náhodných akcí (změna hodnot a kliknutí)
     function performRandomActions() {
@@ -129,7 +133,6 @@
             }
 
         }, getRandomInt(2000, 5000));  // Čekáme náhodně mezi 2 a 5 sekundami
-
     }
 
     // Funkce pro generování náhodného čísla v daném rozsahu
@@ -153,3 +156,4 @@
     }
 
 })();
+
