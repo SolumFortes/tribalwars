@@ -1,0 +1,92 @@
+// ==UserScript==
+// @name         Automatické přecházení na hlavní budovu a pravidelná obnova ve hře Divoké Kmeny
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Automaticky přejde na hlavní budovu, obnoví stránku každé 2 minuty, bez opětovného kliknutí na hlavní budovu.
+// @author       Tvé jméno
+// @match        https://*.divokekmeny.cz/game.php*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    let isRunning = false;  // Flag pro sledování stavu zapnutí/vypnutí
+
+    // Funkce pro kliknutí na hlavní budovu
+    function clickMainBuilding() {
+        // Vyhledáme odkaz <a> obsahující "screen=main" (obecný selektor pro hlavní budovu)
+        const mainBuildingLink = document.querySelector('a[href*="screen=main"]');
+        
+        if (!mainBuildingLink) {
+            console.error("Hlavní budova nebyla nalezena.");
+            return;
+        }
+
+        // Simulace kliknutí na hlavní budovu
+        const clickEvent = new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window
+        });
+
+        mainBuildingLink.dispatchEvent(clickEvent);
+        console.log("Kliknuto na hlavní budovu.");
+    }
+
+    // Funkce pro spuštění cyklu
+    function startCycle() {
+        if (isRunning) {
+            // Přejdeme na hlavní budovu jen jednou
+            if (!sessionStorage.getItem('mainBuildingClicked')) {
+                clickMainBuilding();
+                sessionStorage.setItem('mainBuildingClicked', 'true');  // Zapamatujeme si, že jsme klikli na hlavní budovu
+            }
+
+            // Po přechodu na hlavní budovu počkáme 5 minut a poté opakujeme cyklus
+            setTimeout(() => {
+                startCycle(); // Spustí cyklus znovu po 5 minutách
+            }, 300000); // 5 minut (300000 ms)
+
+            // Obnovujeme stránku každé 2 minuty
+            setTimeout(() => {
+                location.reload(); // Obnovíme stránku každé 2 minuty
+            }, 120000); // 2 minuty (120000 ms)
+        }
+    }
+
+    // Funkce pro přepnutí stavu (zapnutí/vypnutí)
+    function toggleAutoFarm() {
+        isRunning = !isRunning;
+        const button = document.getElementById('autoFarmButton');
+        button.style.backgroundColor = isRunning ? 'green' : 'red';  // Změní barvu tlačítka
+        button.innerText = isRunning ? 'AutoFarm: Zapnuto' : 'AutoFarm: Vypnuto'; // Změní text na tlačítku
+
+        if (isRunning) {
+            startCycle(); // Pokud je zapnuto, spustíme cyklus
+        }
+    }
+
+    // Vytvoření tlačítka pro zapnutí/vypnutí
+    function createToggleButton() {
+        const button = document.createElement('button');
+        button.id = 'autoFarmButton';
+        button.innerText = 'AutoFarm: Vypnuto';  // Výchozí text
+        button.style.position = 'fixed';
+        button.style.top = '100px';  // Umístění pod předchozí tlačítko
+        button.style.left = '10px';
+        button.style.padding = '10px';
+        button.style.backgroundColor = 'red';  // Výchozí červená barva pro vypnuto
+        button.style.color = 'white';
+        button.style.border = 'none';
+        button.style.borderRadius = '5px';
+        button.style.fontSize = '16px';
+        button.style.cursor = 'pointer';
+        button.addEventListener('click', toggleAutoFarm);  // Připojení funkce pro zapnutí/vypnutí
+
+        document.body.appendChild(button);
+    }
+
+    // Zavolání funkce pro vytvoření tlačítka
+    createToggleButton();
+})();
