@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         Automatické farmaření ve hře Divoké Kmeny
+// @name         AutoFarm
 // @namespace    http://tampermonkey.net/
-// @version      1.4
-// @description  Automatické farmaření s přirozenějšími intervaly pro lidské chování a cílením na správné tlačítko, s možností zapnutí/vypnutí
-// @author       Tvé jméno
+// @version      1.5
+// @description  Automatické posílání farmení s pomocníkem rabování
+// @author       Wwww
 // @match        https://*.divokekmeny.cz/game.php*
 // @grant        none
 // ==/UserScript==
@@ -11,52 +11,45 @@
 (function () {
     'use strict';
 
-    // ========================
-    // KONFIGURACE
-    // ========================
     const farmDelayMin = 1000; // Minimální zpoždění mezi odesláním útoků (v ms)
     const farmDelayMax = 2000; // Maximální zpoždění mezi odesláním útoků (v ms)
-    const sendUnitsTimes = 5; // Kolikrát kliknout na odeslání jednotek, než obnovíme stránku
+    const sendUnitsTimes = 5;  // Kolikrát kliknout na odeslání jednotek, než obnovíme stránku
     const farmIconsSelector = '.farm_icon_a'; // Selektor pro tlačítka pro odeslání jednotek
-    const helperFarmButtonSelector = 'a#manager_icon_farm'; // Selektor pro tlačítko Pomocník rabování
+    const helperFarmButtonSelector = 'a#manager_icon_farm'; // Selektor pro tlačítko Pomocníka rabování
 
-    // Stav skriptu (zapnuto/vypnuto)
-    let isScriptActive = false;
+    let isScriptActive = false; // Počáteční stav, že skript není aktivní
 
     // ========================
     // Vytvoření tlačítka pro zapnutí/vypnutí skriptu
     // ========================
     function createToggleButton() {
         const button = document.createElement("button");
-        button.innerHTML = "AutoFarm: Vypnuto"; // Tlačítko bude výchozí jako vypnuté
+        button.innerHTML = isScriptActive ? "AutoFarm - ON" : "AutoFarm - OFF"; // Tlačítko bude výchozí podle stavu
         button.style.position = "fixed";
-        button.style.top = "50%"; // Umístíme tlačítko přibližně do poloviny stránky
-        button.style.left = "10px";    // Umístíme tlačítko k levé straně
-        button.style.transform = "translateY(-50%)"; // Pro vycentrování vertikálně
+        button.style.top = "50%"; // Uprostřed stránky
+        button.style.left = "10px"; // Umístíme tlačítko na levý okraj
+        button.style.transform = "translateY(-50%)"; // Vycentrování tlačítka
         button.style.zIndex = "1000";
-        button.style.padding = "15px 30px";
-        button.style.backgroundColor = "#28a745"; // Zelená barva pro vypnutý stav
+        button.style.padding = "12px 24px";
+        button.style.backgroundColor = isScriptActive ? "#4CAF50" : "#F44336"; // Zelené pro ON, červené pro OFF
         button.style.color = "white";
-        button.style.fontSize = "16px";
+        button.style.fontSize = "16px"; // Zvýšený text
+        button.style.fontWeight = "bold"; // Tučný text
         button.style.border = "none";
-        button.style.borderRadius = "5px";
+        button.style.borderRadius = "8px"; // Zaoblené rohy
         button.style.cursor = "pointer";
-        button.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.3)";
-        
-        // Zajištění, že tlačítko bude viditelné i při skrolování
-        button.style.transition = "background-color 0.3s, color 0.3s";
+        button.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+        button.style.transition = "background-color 0.3s, color 0.3s"; // Plynulé přechody
 
-        button.onclick = function() {
-            // Přepínáme stav skriptu
+        button.onclick = function () {
+            // Případné přepnutí stavu skriptu
             isScriptActive = !isScriptActive;
+            localStorage.setItem('autoFarmActive', isScriptActive.toString());
+            button.innerHTML = isScriptActive ? "AutoFarm - ON" : "AutoFarm - OFF";
+            button.style.backgroundColor = isScriptActive ? "#4CAF50" : "#F44336";
 
             if (isScriptActive) {
-                button.innerHTML = "AutoFarm: Zapnuto"; // Změní text na Zapnuto
-                button.style.backgroundColor = "#dc3545"; // Červená barva pro aktivní stav
-                startFarming(); // Začne farmaření
-            } else {
-                button.innerHTML = "AutoFarm: Vypnuto"; // Změní text na Vypnuto
-                button.style.backgroundColor = "#28a745"; // Zelená barva pro neaktivní stav
+                startFarming(); // Začneme farmaření, když je skript zapnutý
             }
         };
 
@@ -68,27 +61,10 @@
     // ========================
     function clickFarmHelper() {
         const farmHelperButton = document.querySelector(helperFarmButtonSelector);
-
-        if (!farmHelperButton) {
-            console.error("Nebyl nalezen odkaz na pomocníka rabování.");
-            return;
+        if (farmHelperButton) {
+            farmHelperButton.click();
+            setTimeout(startFarming, 1000); // Začneme posílat jednotky po malém zpoždění
         }
-
-        // Simulace kliknutí s náhodným zpožděním
-        const clickEvent = new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-            view: window
-        });
-
-        farmHelperButton.dispatchEvent(clickEvent);
-        console.log("Kliknuto na pomocníka rabování.");
-
-        // Po kliknutí přidáme malé zpoždění
-        const randomDelay = getRandomDelay();
-        setTimeout(() => {
-            clickSendUnits();
-        }, randomDelay);
     }
 
     // ========================
@@ -97,65 +73,49 @@
     let clickCount = 0; // Počet kliknutí
 
     function clickSendUnits() {
-        if (!isScriptActive) return; // Pokud je skript vypnutý, nic neděláme
+        if (!isScriptActive) return; // Pokud je skript vypnutý, nic se nestane
 
         const farmIcons = document.querySelectorAll(farmIconsSelector);
+        if (farmIcons.length > 0) {
+            const randomLink = farmIcons[Math.floor(Math.random() * farmIcons.length)];
+            randomLink.click(); // Kliknutí na náhodnou farmu
 
-        if (farmIcons.length === 0) {
-            console.error("Nebyl nalezen žádný odkaz pro odeslání jednotek.");
-            return;
+            clickCount++;
+
+            if (clickCount >= sendUnitsTimes) {
+                location.reload(); // Obnovíme stránku po 5 odesláních
+            } else {
+                const randomDelay = Math.floor(Math.random() * (farmDelayMax - farmDelayMin + 1)) + farmDelayMin;
+                setTimeout(clickSendUnits, randomDelay); // Další kliknutí po náhodném zpoždění
+            }
         }
-
-        // Vybereme náhodný odkaz pro odeslání jednotek
-        const link = farmIcons[Math.floor(Math.random() * farmIcons.length)];
-
-        // Simulace kliknutí na odeslání jednotek s náhodným zpožděním
-        const clickEvent = new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-            view: window
-        });
-
-        link.dispatchEvent(clickEvent);
-        console.log("Kliknutí na odeslání jednotek.");
-
-        clickCount++; // Zvýšíme počet kliknutí
-
-        // Pokud jsme klikli 5krát, obnovíme stránku
-        if (clickCount >= sendUnitsTimes) {
-            console.log("Kliknuto 5krát, obnovujeme stránku.");
-            location.reload(); // Obnovíme stránku po 5 kliknutích
-        } else {
-            // Po kliknutí přidáme zpoždění před dalším kliknutím
-            const randomDelay = getRandomDelay();
-            setTimeout(() => {
-                clickSendUnits();
-            }, randomDelay);
-        }
-    }
-
-    // ========================
-    // FCE: Generování náhodného zpoždění
-    // ========================
-    function getRandomDelay() {
-        return Math.floor(Math.random() * (farmDelayMax - farmDelayMin + 1)) + farmDelayMin;
     }
 
     // ========================
     // Hlavní logika skriptu
     // ========================
 
+    // Načteme stav skriptu z localStorage, abychom věděli, zda je aktivní i po obnovení stránky
+    const savedStatus = localStorage.getItem('autoFarmActive');
+    if (savedStatus === 'true') {
+        isScriptActive = true;
+    }
+
     // Vytvoříme tlačítko pro zapnutí/vypnutí
     createToggleButton();
 
-    // Funkce pro zahájení farmaření (klikání na pomocníka a odesílání jednotek)
+    // Funkce pro zahájení farmaření
     function startFarming() {
-        if (!window.location.href.includes("screen=am_farm")) {
-            clickFarmHelper(); // Klikneme na pomocníka rabování
-        } else {
-            // Jakmile jsme na stránce farmy, začneme odesílat jednotky
-            clickSendUnits(); // Klikneme na první odkaz pro odeslání jednotek
+        if (isScriptActive) {
+            if (window.location.href.includes("screen=am_farm")) {
+                clickSendUnits(); // Na stránce farmy, začínáme odesílat jednotky
+            } else {
+                clickFarmHelper(); // Nejsem na stránce farmy, klikáme na pomocníka rabování
+            }
         }
     }
+
+    // Načítání stavu a zahájení farmaření při načítání stránky
+    startFarming();
 
 })();
