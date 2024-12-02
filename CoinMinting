@@ -1,0 +1,113 @@
+// ==UserScript==
+// @name         CoinMinting
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Automatické ražení mincí ve hře Tribal Wars
+// @author       Wwww
+// @match        https://*.divokekmeny.cz/game.php*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // ========================
+    // Funkce pro kontrolu, zda jsme na stránce Panského dvora
+    // ========================
+    function goToCoinMintingPage() {
+        if (!window.location.href.includes("screen=snob")) {
+            console.log('Přecházíme na stránku Panského dvora...');
+            window.location.href = "/game.php?village=" + getVillageId() + "&screen=snob"; // Přejdeme na stránku Panského dvora
+        }
+    }
+
+    // Funkce pro získání ID vesnice
+    function getVillageId() {
+        const match = window.location.href.match(/village=(\d+)/);
+        return match ? match[1] : null;
+    }
+
+    // ========================
+    // Funkce pro ražení mincí
+    // ========================
+    function startCoinMinting() {
+        goToCoinMintingPage(); // Přejdeme na stránku Panského dvora, pokud tam nejsme
+
+        setTimeout(function() {
+            // Zkontrolujeme, jestli je tlačítko pro ražení mincí na stránce
+            let coinMintButton = document.getElementById('coin_mint_fill_max');
+            if (coinMintButton) {
+                console.log('Tlačítko pro ražení mincí nalezeno, klikám na něj...');
+                coinMintButton.click(); // Klikneme na tlačítko "Razit maximální množství"
+                setTimeout(function() {
+                    let submitButton = document.querySelector('input[type="submit"][value="Razit"]');
+                    if (submitButton) {
+                        console.log('Klikám na tlačítko "Razit"...');
+                        submitButton.click(); // Klikneme na tlačítko pro ražení mincí
+                        setTimeout(function() {
+                            location.reload(); // Obnovíme stránku po ražení
+                            startCoinMinting(); // Spustíme skript znovu
+                        }, 5000); // Po 5 vteřinách obnovíme stránku
+                    }
+                }, 2000); // Po 2 sekundách klikneme na tlačítko "Razit"
+            } else {
+                console.log('Tlačítko pro ražení mincí nenalezeno, obnovuji stránku...');
+                location.reload(); // Pokud tlačítko není nalezeno, obnovíme stránku
+                startCoinMinting(); // A spustíme skript znovu
+            }
+        }, 5000); // Po 5 sekundách počkáme a zkontrolujeme stránku
+    }
+
+    // ========================
+    // Vytvoření tlačítka pro zapnutí/vypnutí skriptu
+    // ========================
+    function createToggleButton() {
+        // Načteme uložený stav tlačítka z localStorage, pokud existuje
+        const savedStatus = localStorage.getItem('coinMintingActive');
+        const isScriptActive = savedStatus === 'true'; // Pokud je uložený stav 'true', tlačítko bude ON
+
+        const button = document.createElement("button");
+        button.innerHTML = isScriptActive ? "CoinMinting - ON" : "CoinMinting - OFF"; // Text tlačítka na základě uloženého stavu
+        button.style.position = "fixed";
+        button.style.top = "calc(50% - 100px)"; // Posunutí tlačítka o 100px nahoru
+        button.style.left = "10px"; // Umístění tlačítka vlevo
+        button.style.transform = "translateY(-50%)"; // Vycentrování tlačítka
+        button.style.zIndex = "1000";
+        button.style.padding = "12px 24px";
+        button.style.backgroundColor = isScriptActive ? "#4CAF50" : "#F44336"; // Zelené pro ON, červené pro OFF
+        button.style.color = "white";
+        button.style.fontSize = "16px"; // Větší text
+        button.style.fontWeight = "bold"; // Tučný text
+        button.style.border = "none";
+        button.style.borderRadius = "8px"; // Zaoblené rohy
+        button.style.cursor = "pointer";
+        button.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+        button.style.transition = "background-color 0.3s, color 0.3s"; // Plynulé přechody
+
+        button.onclick = function () {
+            // Přepnutí stavu skriptu
+            const newStatus = !isScriptActive; // Přepneme aktuální stav
+            localStorage.setItem('coinMintingActive', newStatus.toString()); // Uložíme nový stav do localStorage
+            button.innerHTML = newStatus ? "CoinMinting - ON" : "CoinMinting - OFF"; // Změníme text tlačítka
+            button.style.backgroundColor = newStatus ? "#4CAF50" : "#F44336"; // Změníme barvu tlačítka
+
+            // Pokud je skript aktivní, spustíme ražení mincí
+            if (newStatus) {
+                startCoinMinting();
+            }
+        };
+
+        document.body.appendChild(button); // Přidání tlačítka na stránku
+    }
+
+    // ========================
+    // Načítání stavu a spuštění skriptu
+    // ========================
+    createToggleButton(); // Vytvoříme tlačítko pro zapnutí/vypnutí
+
+    const savedStatus = localStorage.getItem('coinMintingActive');
+    if (savedStatus === 'true') {
+        startCoinMinting(); // Pokud je skript aktivní, začneme ražení mincí
+    }
+
+})();
