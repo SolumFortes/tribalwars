@@ -4,7 +4,7 @@
 // @version      1.5
 // @description  Automatické posílání farmení s pomocníkem rabování
 // @author       Wwww
-// @match        https://*.divokekmeny.cz/game.php*
+// @match        https://*/game.php?village=*&screen=am_farm
 // @grant        none
 // ==/UserScript==
 
@@ -26,7 +26,7 @@
         const button = document.createElement("button");
         button.innerHTML = isScriptActive ? "AutoFarm - ON" : "AutoFarm - OFF"; // Tlačítko bude výchozí podle stavu
         button.style.position = "fixed";
-        button.style.top = "50%"; // Uprostřed stránky
+        button.style.top = "calc(50% - 50px)"; // Posuneme tlačítko o 50px výš (45px + 5px)
         button.style.left = "10px"; // Umístíme tlačítko na levý okraj
         button.style.transform = "translateY(-50%)"; // Vycentrování tlačítka
         button.style.zIndex = "1000";
