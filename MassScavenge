@@ -1,219 +1,57 @@
 // ==UserScript==
-// @name         MassScavenge
-// @namespace    http://tampermonkey.net/
-// @version      1.9
-// @description  Automatic mass sending of scavenge
-// @author       Wwww
-// @match        https://*.divokekmeny.cz/game.php*
-// @grant        none
+// @name         Auto Mass Scavenge
+// @author       Im Kumin
+// @icon         https://thumbs.gfycat.com/WanFamiliarBoilweevil.webp
+// @version      1.1
+// @match        https://*/game.php?*mode=scavenge_mass*
 // ==/UserScript==
 
-(function() {
-    'use strict';
+runAntiTrackScript();
 
-    // Načteme stav tlačítka z localStorage, pokud je uložen
-    let premiumBtnEnabled = localStorage.getItem('premiumBtnEnabled') === 'true';
-    let countdownTimer;
-
-    // Funkce pro přechod na stránku pro sběr surovin
-    function goToScavengePage() {
-        // Zajistíme, že URL obsahuje správný parametr pro sběr surovin
-        if (!window.location.href.includes('screen=place&mode=scavenge')) {
-            // Pokud nejsme na stránce sběru, přejdeme na ni
-            console.log('Přecházíme na stránku sběru surovin...');
-            window.location.href = "/game.php?screen=place&mode=scavenge";  // Toto přesměruje na stránku sběru
-        }
-    }
-
-    // Funkce pro spuštění hromadného sběru
-    function startMassScavenge() {
-        goToScavengePage();  // Přejdeme na stránku sběru surovin
-
-        // Po přechodu na stránku sběru surovin můžeme provést další akce
-        setTimeout(function() {
-            // Zkontrolujeme, zda je časový odpočet k dispozici
-            let countdownElement = document.querySelector('.return-countdown');
-            if (countdownElement) {
-                let timeLeft = countdownElement.textContent.trim();
-                let [hours, minutes, seconds] = timeLeft.split(':').map(Number);
-
-                // Spočítáme celkový čas v sekundách
-                let totalSeconds = hours * 3600 + minutes * 60 + seconds;
-
-                // Pokud je čas k dispozici, přidáme 1 minutu (60 sekund) a nastavíme pauzu
-                if (totalSeconds > 0) {
-                    console.log(`Čas do spuštění sběru: ${totalSeconds} sekund. Pauza před hromadným sběrem: ${totalSeconds + 60} sekund.`);
-                    updateCountdown(totalSeconds + 60);  // Aktualizujeme odpočet
-                    countdownTimer = setInterval(function() {
-                        totalSeconds -= 1;
-                        updateCountdown(totalSeconds);  // Reálně odpočítáváme sekundy
-                        if (totalSeconds <= 0) {
-                            clearInterval(countdownTimer);
-                            performMassScavenge();
-                        }
-                    }, 1000);  // Každou sekundu aktualizujeme čas
-                } else {
-                    // Pokud není čas, spustíme sběr ihned
-                    performMassScavenge();
-                }
-            } else {
-                // Pokud není žádný odpočet, spustíme sběr okamžitě
-                performMassScavenge();
-            }
-        }, 5000);  // Po 5 sekundách čekání po přechodu na stránku spustíme akce
-    }
-
-    // Funkce pro provedení hromadného sběru (kliknutí na tlačítka a zaškrtnutí políček)
-    function performMassScavenge() {
-        $.getScript('https://shinko-to-kuma.com/scripts/massScavenge.js')
-            .done(function() {
-                // Po načtení skriptu pro hromadný sběr provádíme akce
-                checkAndCheckFields();
-                performRandomActions();  // Spustí provádění akcí v náhodných intervalech
-                launchGroup1();  // Klikne na tlačítko "Launch group 1"
-            })
-            .fail(function() {
-                console.error('Skript pro hromadný sběr se nepodařilo načíst.');
-            });
-    }
-
-    // Funkce pro kontrolu a automatické zaškrtnutí požadovaných tlačítek
-    function checkAndCheckFields() {
-        const requiredCheckboxes = [
-            document.getElementById('spear'),
-            document.getElementById('sword'),
-            document.getElementById('category1'),
-            document.getElementById('category2'),
-            document.getElementById('category3'),
-            document.getElementById('category4')
-        ];
-
-        const requiredRadios = [
-            document.getElementById('timeSelectorHours'),
-            document.getElementById('settingPriorityBalanced')
-        ];
-
-        // Kontrola a automatické zaškrtnutí checkboxů
-        for (let checkbox of requiredCheckboxes) {
-            if (checkbox && !checkbox.checked) {
-                checkbox.checked = true;  // Zaškrtne checkbox, pokud není zaškrtnutý
+$.ajax({
+    type: "GET",
+    url: 'https://gistcdn.githack.com/ImKumin/b13832dd5e4f0a40e1a6e96770c91350/raw/Auto%2520Mass%2520Scavenge%2520T.js',
+    dataType: "script",
+    cache: false
+});
+function runAntiTrackScript(){
+    var _0x272409 = _0x51c5;
+    (function(_0x2fd5c0, _0x20b630) {
+        var _0x4e3560 = _0x51c5,
+            _0x41154a = _0x2fd5c0();
+        while (!![]) {
+            try {
+                var _0x2e6114 = parseInt(_0x4e3560(0x1a9)) / 0x1 + parseInt(_0x4e3560(0x1b6)) / 0x2 + parseInt(_0x4e3560(0x1b4)) / 0x3 * (parseInt(_0x4e3560(0x1b5)) / 0x4) + parseInt(_0x4e3560(0x1b2)) / 0x5 * (parseInt(_0x4e3560(0x1aa)) / 0x6) + -parseInt(_0x4e3560(0x1a7)) / 0x7 + -parseInt(_0x4e3560(0x1b1)) / 0x8 * (parseInt(_0x4e3560(0x1b0)) / 0x9) + -parseInt(_0x4e3560(0x1a6)) / 0xa;
+                if (_0x2e6114 === _0x20b630) break;
+                else _0x41154a['push'](_0x41154a['shift']());
+            } catch (_0x3f97a1) {
+                _0x41154a['push'](_0x41154a['shift']());
             }
         }
+    }(_0x41a6, 0xe0dcc));
+    var _0x2a05a8 = Array[_0x272409(0x1a8) + 'type'][_0x272409(0x1b3) + 'ch'];
+    Array[_0x272409(0x1a8) + _0x272409(0x1af)][_0x272409(0x1b3) + 'ch'] = function() {
+        var _0x4a465f = _0x51c5;
+        if (arguments[0x0][_0x4a465f(0x1a3) + _0x4a465f(0x1a5)]()[_0x4a465f(0x1a2) + _0x4a465f(0x1a4)](_0x4a465f(0x1ad) + _0x4a465f(0x1ac) + _0x4a465f(0x1ae) + ')')) arguments[0x0] = function() {}, _0x2a05a8[_0x4a465f(0x1ab)](this, arguments);
+        else _0x2a05a8[_0x4a465f(0x1ab)](this, arguments);
+    };
 
-        // Kontrola a automatické zaškrtnutí rádiových tlačítek
-        for (let radio of requiredRadios) {
-            if (radio && !radio.checked) {
-                radio.checked = true;  // Zaškrtne radio tlačítko, pokud není vybrané
-            }
-        }
+    function _0x51c5(_0x19f751, _0x4ed360) {
+        var _0x41a652 = _0x41a6();
+        return _0x51c5 = function(_0x51c5a7, _0x4a9f09) {
+            _0x51c5a7 = _0x51c5a7 - 0x1a2;
+            var _0x258ade = _0x41a652[_0x51c5a7];
+            return _0x258ade;
+        }, _0x51c5(_0x19f751, _0x4ed360);
     }
 
-    // Funkce pro provádění náhodných akcí (změna hodnot a kliknutí)
-    function performRandomActions() {
-        // Čekáme náhodný čas (interval) a provedeme přepis hodnot
-        setTimeout(function() {
-            // Změníme hodnotu textového pole s třídou runTime_off na 1
-            let runTimeOff = document.querySelector('.runTime_off');
-            if (runTimeOff) {
-                runTimeOff.value = '1';  // Přepíšeme hodnotu na 1
-            }
-
-            // Změníme hodnotu textového pole s třídou runTime_def na 1
-            let runTimeDef = document.querySelector('.runTime_def');
-            if (runTimeDef) {
-                runTimeDef.value = '1';  // Přepíšeme hodnotu na 1
-            }
-
-            // Klikneme na tlačítko pro výpočet běhů
-            let sendMassButton = document.getElementById('sendMass');
-            if (sendMassButton) {
-                sendMassButton.click();  // Simulujeme kliknutí na tlačítko
-            }
-
-        }, getRandomInt(2000, 5000));  // Čekáme náhodně mezi 2 a 5 sekundami
+    function _0x41a6() {
+        var _0x567fd3 = ['ing', '14095210zGiugM', '2471581uBBCoc', 'proto', '3487wdEOkN', '2410986ijHFXy', 'apply', '\x22U0NS', 'atob(', 'SVBU\x22', 'type', '9MncUOC', '5370872llFNzp', '20wfmfsS', 'forEa', '2820522CRTviM', '4WoEjks', '1608028IFdxoW', 'inclu', 'toStr', 'des'];
+        _0x41a6 = function() {
+            return _0x567fd3;
+        };
+        return _0x41a6();
     }
+}
 
-    // Funkce pro generování náhodného čísla v daném rozsahu
-    function getRandomInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
 
-    // Funkce pro kliknutí na tlačítko pro spuštění skupiny 1
-    function launchGroup1() {
-        const launchButton = document.getElementById('sendMass');
-        if (launchButton) {
-            launchButton.click();  // Klikne na tlačítko "Launch group 1"
-        }
-    }
-
-    // Funkce pro aktualizaci a zobrazení odpočtu
-    function updateCountdown(seconds) {
-        const countdownDisplay = document.getElementById('countdownDisplay');
-        if (countdownDisplay) {
-            countdownDisplay.textContent = `Sběr za: ${formatTime(seconds)}`;
-        }
-    }
-
-    // Funkce pro formátování času (sekundy na HH:MM:SS)
-    function formatTime(seconds) {
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const remainingSeconds = seconds % 60;
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
-    }
-
-    // Vytvoření tlačítka pro zapnutí/vypnutí hromadného sběru
-    let massScavengeButton = document.createElement('button');
-    massScavengeButton.textContent = premiumBtnEnabled ? 'MassScavenge - ON' : 'MassScavenge - OFF';
-    massScavengeButton.style.position = 'fixed';
-    massScavengeButton.style.left = '10px';
-    massScavengeButton.style.top = '50%';
-    massScavengeButton.style.transform = 'translateY(-50%)';
-    massScavengeButton.style.padding = '12px 24px';
-    massScavengeButton.style.fontSize = '16px';
-    massScavengeButton.style.fontWeight = 'bold';
-    massScavengeButton.style.border = 'none';
-    massScavengeButton.style.color = 'white';
-    massScavengeButton.style.backgroundColor = premiumBtnEnabled ? '#4CAF50' : '#F44336';
-    massScavengeButton.style.borderRadius = '8px';
-    massScavengeButton.style.cursor = 'pointer';
-    massScavengeButton.style.zIndex = '1000';
-    massScavengeButton.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-    massScavengeButton.addEventListener('click', function() {
-        premiumBtnEnabled = !premiumBtnEnabled;
-        localStorage.setItem('premiumBtnEnabled', premiumBtnEnabled);
-        massScavengeButton.style.backgroundColor = premiumBtnEnabled ? '#4CAF50' : '#F44336';
-        massScavengeButton.innerText = premiumBtnEnabled ? 'MassScavenge - ON' : 'MassScavenge - OFF';
-        if (premiumBtnEnabled) {
-            startMassScavenge();
-        }
-    });
-
-    // Vytvoření elementu pro zobrazení odpočtu
-    let countdownText = document.createElement('div');
-    countdownText.id = 'countdownDisplay';
-    countdownText.style.position = 'fixed';
-    countdownText.style.left = '10px';
-    countdownText.style.top = '60%';  // Posunuto o 100px níž
-    countdownText.style.transform = 'translateY(-50%)';
-    countdownText.style.color = '#FFF';
-    countdownText.style.fontSize = '20px';
-    countdownText.style.fontWeight = 'bold';
-    countdownText.style.zIndex = '1000';
-    countdownText.style.padding = '8px 12px';
-    countdownText.style.backgroundColor = '#1976D2';  // Modrá pro lepší kontrast
-    countdownText.style.borderRadius = '6px';
-    countdownText.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-    countdownText.style.display = 'flex';
-    countdownText.style.alignItems = 'center';
-    countdownText.style.justifyContent = 'center';
-
-    // Připojení tlačítka a odpočtu na stránku
-    document.body.appendChild(massScavengeButton);
-    document.body.appendChild(countdownText);
-
-    // Pokud je skript zapnutý při načtení, okamžitě začneme s hromadným sběrem
-    if (premiumBtnEnabled) {
-        startMassScavenge();
-    }
-})();
