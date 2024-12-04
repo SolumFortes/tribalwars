@@ -1,0 +1,134 @@
+// ==UserScript==
+// @name         AutoRekrut Barracks
+// @namespace    http://tampermonkey.net/
+// @version      2.6
+// @description  Automatically recruits 1 spearman every 5 minutes in the game Tribal Wars.
+// @author       Wwww
+// @match        https://cs100.divokekmeny.cz/game.php?village=*&screen=barracks*
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    // Získání URL kasáren
+    const server = window.location.hostname;
+    const villageId = new URLSearchParams(window.location.search).get('village');
+    const barracksURL = `https://${server}/game.php?village=${villageId}&screen=barracks`;
+
+    console.log(`[LOG] Aktuální URL: ${window.location.href}`);
+    console.log(`[LOG] Generované URL pro kasárna: ${barracksURL}`);
+
+    // Přesměrování na kasárna
+    if (window.location.href !== barracksURL) {
+        console.log('[LOG] Nejsem na stránce kasáren, přesměrovávám...');
+        window.location.href = barracksURL;
+        return;
+    }
+
+    // Hlavní logika rekrutování
+    async function mainLogic() {
+        console.log('[LOG] Nacházím se na stránce kasáren, spouštím hlavní logiku.');
+
+        // Najdi pole pro kopiníky
+        const spearInput = document.querySelector('#spear_0');
+        if (spearInput) {
+            console.log('[LOG] Nastavuji počet kopiníků na 1...');
+            spearInput.value = '1';
+        } else {
+            console.warn('[WARNING] Pole pro zadání počtu kopiníků nebylo nalezeno. Čekám 30 sekund a poté restartuji skript...');
+            setTimeout(() => {
+                console.log('[LOG] Restartuji skript...');
+                window.location.reload(); // Restart stránky po 30 sekundách
+            }, 30000); // 30 sekund čekání
+            return;
+        }
+
+        // Najdi tlačítko Rekrutovat
+        const recruitButton = document.querySelector('.btn-recruit');
+        if (recruitButton) {
+            console.log('[LOG] Klikám na tlačítko Rekrutovat...');
+            recruitButton.click();
+        } else {
+            console.warn('[WARNING] Tlačítko Rekrutovat nebylo nalezeno. Čekám 30 sekund a poté restartuji skript...');
+            setTimeout(() => {
+                console.log('[LOG] Restartuji skript...');
+                window.location.reload(); // Restart stránky po 30 sekundách
+            }, 30000); // 30 sekund čekání
+            return;
+        }
+
+        // Pevný interval mezi cykly (5 minut)
+        const delay = 300000; // 300000 ms = 5 minut
+        console.log(`[LOG] Další akce proběhne za ${Math.round(delay / 1000)} sekund.`);
+        setTimeout(() => {
+            console.log('[LOG] Obnovuji stránku...');
+            window.location.reload();
+        }, delay);
+    }
+
+    // Funkce pro spuštění skriptu
+    function startScript() {
+        console.log('[LOG] Stránka načtena. Spouštím hlavní logiku...');
+        mainLogic();
+    }
+
+    // Funkce pro zastavení skriptu
+    function stopScript() {
+        console.log('[LOG] Skript byl vypnut.');
+    }
+
+    // Uložení stavu tlačítka do LocalStorage
+    function saveButtonState(state) {
+        localStorage.setItem('autoRekrutState', state);
+    }
+
+    // Načtení stavu tlačítka z LocalStorage
+    function loadButtonState() {
+        return localStorage.getItem('autoRekrutState') || 'ON';
+    }
+
+    // Vytvoření tlačítka pro zapnutí/vypnutí
+    function createToggleButton() {
+        const button = document.createElement('button');
+        button.id = 'autoRekrutButton';
+        button.style.position = 'fixed';
+        button.style.left = '10px';
+        button.style.top = '50%';
+        button.style.transform = 'translateY(-50%)';
+        button.style.padding = '10px';
+        button.style.fontSize = '16px';
+        button.style.border = 'none';
+        button.style.borderRadius = '5px';
+        button.style.color = 'white';
+        button.style.cursor = 'pointer';
+        button.style.zIndex = '1000';
+
+        const state = loadButtonState();
+        button.textContent = `AutoRekrut - ${state === 'ON' ? 'ON' : 'OFF'}`;
+        button.style.backgroundColor = state === 'ON' ? 'green' : 'red';
+
+        button.addEventListener('click', () => {
+            const newState = button.textContent.includes('ON') ? 'OFF' : 'ON';
+            button.textContent = `AutoRekrut - ${newState}`;
+            button.style.backgroundColor = newState === 'ON' ? 'green' : 'red';
+            saveButtonState(newState);
+
+            if (newState === 'ON') {
+                startScript();
+            } else {
+                stopScript();
+            }
+        });
+
+        document.body.appendChild(button);
+    }
+
+    // Inicializace tlačítka a skriptu
+    createToggleButton();
+
+    // Pokud je skript povolený, spustíme ho
+    if (loadButtonState() === 'ON') {
+        startScript();
+    }
+})();
