@@ -3,7 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      2.4
 // @description  Automatically recruits 1 light cavalry every 5 minutes in the game Tribal Wars.
-// @author       Wwwww
+// @author       Wwww
 // @match        https://*/game.php?village=*screen=stable*
 // @grant        none
 // ==/UserScript==
@@ -19,7 +19,7 @@
     console.log(`[LOG] Aktuální URL: ${window.location.href}`);
     console.log(`[LOG] Generované URL pro stáj: ${stableURL}`);
 
-    // Přesměrování na stáj
+    // Přesměrování na stáj, pokud tam nejsme
     if (window.location.href !== stableURL) {
         console.log('[LOG] Nejsem na stránce stáje, přesměrovávám...');
         window.location.href = stableURL;
