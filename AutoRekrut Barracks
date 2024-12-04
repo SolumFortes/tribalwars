@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         AutoRekrut Barracks
+// @name         AutoRekrut Spearman
 // @namespace    http://tampermonkey.net/
 // @version      2.6
 // @description  Automatically recruits 1 spearman every 5 minutes in the game Tribal Wars.
@@ -17,9 +17,9 @@
     const barracksURL = `https://${server}/game.php?village=${villageId}&screen=barracks`;
 
     console.log(`[LOG] Aktuální URL: ${window.location.href}`);
-    console.log(`[LOG] Generované URL pro kasárna: ${barracksURL}`);
+    console.log(`[LOG] Generované URL pro kasáry: ${barracksURL}`);
 
-    // Přesměrování na kasárna
+    // Přesměrování na kasáren, pokud nejsme na správné stránce
     if (window.location.href !== barracksURL) {
         console.log('[LOG] Nejsem na stránce kasáren, přesměrovávám...');
         window.location.href = barracksURL;
@@ -36,12 +36,12 @@
             console.log('[LOG] Nastavuji počet kopiníků na 1...');
             spearInput.value = '1';
         } else {
-            console.warn('[WARNING] Pole pro zadání počtu kopiníků nebylo nalezeno. Čekám 30 sekund a poté restartuji skript...');
+            console.warn('[WARNING] Pole pro zadání počtu kopiníků nebylo nalezeno, čekám 30 sekund a obnovuji stránku...');
             setTimeout(() => {
-                console.log('[LOG] Restartuji skript...');
-                window.location.reload(); // Restart stránky po 30 sekundách
-            }, 30000); // 30 sekund čekání
-            return;
+                console.log('[LOG] Obnovuji stránku...');
+                window.location.reload();  // Obnoví stránku po 30 sekundách
+            }, 30000);  // 30 sekund čekání
+            return;  // Počká na obnovu stránky
         }
 
         // Najdi tlačítko Rekrutovat
@@ -50,12 +50,12 @@
             console.log('[LOG] Klikám na tlačítko Rekrutovat...');
             recruitButton.click();
         } else {
-            console.warn('[WARNING] Tlačítko Rekrutovat nebylo nalezeno. Čekám 30 sekund a poté restartuji skript...');
+            console.warn('[WARNING] Tlačítko Rekrutovat nebylo nalezeno, čekám 30 sekund a obnovuji stránku...');
             setTimeout(() => {
-                console.log('[LOG] Restartuji skript...');
-                window.location.reload(); // Restart stránky po 30 sekundách
-            }, 30000); // 30 sekund čekání
-            return;
+                console.log('[LOG] Obnovuji stránku...');
+                window.location.reload();  // Obnoví stránku po 30 sekundách
+            }, 30000);  // 30 sekund čekání
+            return;  // Počká na obnovu stránky
         }
 
         // Pevný interval mezi cykly (5 minut)
@@ -63,7 +63,7 @@
         console.log(`[LOG] Další akce proběhne za ${Math.round(delay / 1000)} sekund.`);
         setTimeout(() => {
             console.log('[LOG] Obnovuji stránku...');
-            window.location.reload();
+            window.location.reload();  // Obnoví stránku po 5 minutách
         }, delay);
     }
 
