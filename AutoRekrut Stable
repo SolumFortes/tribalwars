@@ -1,83 +1,65 @@
 // ==UserScript==
-// @name         AutoRekrut
+// @name         AutoRekrut Stable
 // @namespace    http://tampermonkey.net/
-// @version      1.9
-// @description  Automatically recruits 1 spearman every 6 minutes in the game Tribal Wars.
-// @author       Wwww
-// @match        https://*/game.php?village=*screen=train*
+// @version      2.4
+// @description  Automatically recruits 1 light cavalry every 5 minutes in the game Tribal Wars.
+// @author       Wwwww
+// @match        https://*/game.php?village=*screen=stable*
 // @grant        none
 // ==/UserScript==
 
 (function () {
     'use strict';
 
-    // Čekací funkce na prvky
-    async function waitForElement(selector, retries = 10, interval = 500) {
-        for (let i = 0; i < retries; i++) {
-            const element = document.querySelector(selector);
-            if (element) {
-                console.log(`[LOG] Prvek "${selector}" nalezen.`);
-                return element;
-            }
-            console.log(`[LOG] Čekám na prvek "${selector}" (${i + 1}/${retries})...`);
-            await new Promise((resolve) => setTimeout(resolve, interval));
-        }
-        console.warn(`[WARNING] Prvek "${selector}" nebyl nalezen po ${retries} pokusech.`);
-        return null;
-    }
-
-    // Náhodný časový interval
-    function getRandomInterval(min, max) {
-        const interval = Math.floor(Math.random() * (max - min + 1)) + min;
-        console.log(`[LOG] Generován náhodný interval: ${interval / 1000} sekund.`);
-        return interval;
-    }
-
-    // Získání URL školení
+    // Získání URL stáje
     const server = window.location.hostname;
     const villageId = new URLSearchParams(window.location.search).get('village');
-    const trainURL = `https://${server}/game.php?village=${villageId}&screen=train`;
+    const stableURL = `https://${server}/game.php?village=${villageId}&screen=stable`;
 
     console.log(`[LOG] Aktuální URL: ${window.location.href}`);
-    console.log(`[LOG] Generované URL pro školu vojáků: ${trainURL}`);
+    console.log(`[LOG] Generované URL pro stáj: ${stableURL}`);
 
-    // Přesměrování na školu vojáků
-    if (window.location.href !== trainURL) {
-        console.log('[LOG] Nejsem na stránce školy vojáků, přesměrovávám...');
-        window.location.href = trainURL;
+    // Přesměrování na stáj
+    if (window.location.href !== stableURL) {
+        console.log('[LOG] Nejsem na stránce stáje, přesměrovávám...');
+        window.location.href = stableURL;
         return;
     }
 
     // Hlavní logika rekrutování
-    async function mainLogic() {
-        console.log('[LOG] Nacházím se na stránce školy vojáků, spouštím hlavní logiku.');
+    function mainLogic() {
+        console.log('[LOG] Nacházím se na stránce stáje, spouštím hlavní logiku.');
 
-        // Čekej na pole pro kopiníky
-        const spearInput = await waitForElement('#spear_0', 20, 500);
-        if (spearInput) {
-            console.log('[LOG] Nastavuji počet kopiníku na 1...');
-            spearInput.value = '1';
+        // Najdi pole pro lehkou jízdu
+        const lightInput = document.querySelector('#light_0');
+        if (lightInput) {
+            console.log('[LOG] Nastavuji počet lehké jízdy na 1...');
+            lightInput.value = '1';
         } else {
-            console.warn('[WARNING] Pole pro kopiníky nebylo nalezeno. Přeskakuji rekrut.');
-            return; // Přeskočí rekrut, pokud není pole
+            console.warn('[WARNING] Pole pro zadání počtu lehké jízdy nebylo nalezeno. Čekám 30 sekund a poté restartuji skript...');
+            setTimeout(() => {
+                console.log('[LOG] Restartuji skript...');
+                window.location.reload(); // Restart stránky po 30 sekundách
+            }, 30000); // 30 sekund čekání
+            return;
         }
 
-        // Čekej na tlačítko Rekrutovat
-        const recruitButton = await waitForElement('.btn-recruit', 20, 500);
+        // Najdi tlačítko Rekrutovat
+        const recruitButton = document.querySelector('.btn-recruit');
         if (recruitButton) {
             console.log('[LOG] Klikám na tlačítko Rekrutovat...');
             recruitButton.click();
         } else {
-            console.warn('[WARNING] Tlačítko Rekrutovat nebylo nalezeno. Čekám 60 sekund a restartuji skript.');
+            console.warn('[WARNING] Tlačítko Rekrutovat nebylo nalezeno. Čekám 30 sekund a poté restartuji skript...');
             setTimeout(() => {
                 console.log('[LOG] Restartuji skript...');
-                window.location.reload();
-            }, 60000);  // 60 sekund čekání
-            return; // Zastaví skript, dokud se nenajde tlačítko
+                window.location.reload(); // Restart stránky po 30 sekundách
+            }, 30000); // 30 sekund čekání
+            return;
         }
 
-        // Náhodný interval mezi cykly
-        const delay = getRandomInterval(290000, 320000); // 5:30 až 6 minut
+        // Pevný interval mezi cykly (5 minut)
+        const delay = 300000; // 300000 ms = 5 minut
         console.log(`[LOG] Další akce proběhne za ${Math.round(delay / 1000)} sekund.`);
         setTimeout(() => {
             console.log('[LOG] Obnovuji stránku...');
@@ -111,9 +93,9 @@
         const button = document.createElement('button');
         button.id = 'autoRekrutButton';
         button.style.position = 'fixed';
-        button.style.left = '10px';  // Posunuto na levou stranu
+        button.style.left = '10px';
         button.style.top = '50%';
-        button.style.transform = 'translateY(-50%)';  // Vertikálně ve středu
+        button.style.transform = 'translateY(-50%)';
         button.style.padding = '10px';
         button.style.fontSize = '16px';
         button.style.border = 'none';
