@@ -1,121 +1,118 @@
 // ==UserScript==
-// @name         AutoFarm
+// @name         MassScavenge
 // @namespace    http://tampermonkey.net/
-// @version      1.5
-// @description  Automatické posílání farmení s pomocníkem rabování
+// @version      1.7
+// @description  MassScavenge
 // @author       Wwww
-// @match        https://*/game.php?village=*&screen=am_farm
+// @match        https://*.divokekmeny.cz/game.php?village=*&screen=place&mode=scavenge_mass
 // @grant        none
 // ==/UserScript==
 
 (function () {
     'use strict';
 
-    const farmDelayMin = 1000; // Minimální zpoždění mezi odesláním útoků (v ms)
-    const farmDelayMax = 2000; // Maximální zpoždění mezi odesláním útoků (v ms)
-    const sendUnitsTimes = 5;  // Kolikrát kliknout na odeslání jednotek, než obnovíme stránku
-    const farmIconsSelector = '.farm_icon_a'; // Selektor pro tlačítka pro odeslání jednotek
-    const helperFarmButtonSelector = 'a#manager_icon_farm'; // Selektor pro tlačítko Pomocníka rabování
+    console.log('MassScavenge script initialized.'); // Diagnostický log
 
-    let isScriptActive = false; // Počáteční stav, že skript není aktivní
+    // Inicializace nastavení
+    const storageKey = 'massScavengeEnabled';
+    let isEnabled = JSON.parse(localStorage.getItem(storageKey)) || false;
 
-    // ========================
-    // Vytvoření tlačítka pro zapnutí/vypnutí skriptu
-    // ========================
-    function createToggleButton() {
-        const button = document.createElement("button");
-        button.innerHTML = isScriptActive ? "AutoFarm - ON" : "AutoFarm - OFF"; // Tlačítko bude výchozí podle stavu
-        button.style.position = "fixed";
-        button.style.top = "calc(50% - 50px)"; // Posuneme tlačítko o 50px výš (45px + 5px)
-        button.style.left = "10px"; // Umístíme tlačítko na levý okraj
-        button.style.transform = "translateY(-50%)"; // Vycentrování tlačítka
-        button.style.zIndex = "1000";
-        button.style.padding = "12px 24px";
-        button.style.backgroundColor = isScriptActive ? "#4CAF50" : "#F44336"; // Zelené pro ON, červené pro OFF
-        button.style.color = "white";
-        button.style.fontSize = "16px"; // Zvýšený text
-        button.style.fontWeight = "bold"; // Tučný text
-        button.style.border = "none";
-        button.style.borderRadius = "8px"; // Zaoblené rohy
-        button.style.cursor = "pointer";
-        button.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
-        button.style.transition = "background-color 0.3s, color 0.3s"; // Plynulé přechody
+    // Vytvoření tlačítka
+    const button = document.createElement('button');
+    button.textContent = isEnabled ? 'MassScavenge - ON' : 'MassScavenge - OFF';
+    button.style.position = 'fixed';
+    button.style.left = '10px';
+    button.style.top = '50%';
+    button.style.transform = 'translateY(-50%)';
+    button.style.padding = '10px 20px';
+    button.style.fontSize = '16px';
+    button.style.fontWeight = 'bold';
+    button.style.border = 'none';
+    button.style.borderRadius = '8px';
+    button.style.color = 'white';
+    button.style.backgroundColor = isEnabled ? 'green' : 'red';
+    button.style.cursor = 'pointer';
+    button.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    button.style.zIndex = '1000';
 
-        button.onclick = function () {
-            // Případné přepnutí stavu skriptu
-            isScriptActive = !isScriptActive;
-            localStorage.setItem('autoFarmActive', isScriptActive.toString());
-            button.innerHTML = isScriptActive ? "AutoFarm - ON" : "AutoFarm - OFF";
-            button.style.backgroundColor = isScriptActive ? "#4CAF50" : "#F44336";
+    // Přidání tlačítka na stránku
+    document.body.appendChild(button);
 
-            if (isScriptActive) {
-                startFarming(); // Začneme farmaření, když je skript zapnutý
-            }
-        };
-
-        document.body.appendChild(button); // Přidáme tlačítko do stránky
-    }
-
-    // ========================
-    // FCE: Kliknutí na pomocníka rabování
-    // ========================
-    function clickFarmHelper() {
-        const farmHelperButton = document.querySelector(helperFarmButtonSelector);
-        if (farmHelperButton) {
-            farmHelperButton.click();
-            setTimeout(startFarming, 1000); // Začneme posílat jednotky po malém zpoždění
+    // Přepínání stavu skriptu
+    button.addEventListener('click', () => {
+        isEnabled = !isEnabled;
+        localStorage.setItem(storageKey, JSON.stringify(isEnabled));
+        button.textContent = isEnabled ? 'MassScavenge - ON' : 'MassScavenge - OFF';
+        button.style.backgroundColor = isEnabled ? 'green' : 'red';
+        console.log(`MassScavenge script ${isEnabled ? 'enabled' : 'disabled'}.`); // Diagnostický log
+        if (isEnabled) {
+            startScript();
         }
+    });
+
+    // Hlavní funkce skriptu
+    async function startScript() {
+        console.log('MassScavenge script started.'); // Diagnostický log
+        while (isEnabled) {
+            try {
+                console.log('Loading external script...'); // Diagnostický log
+                loadExternalScript();
+                await randomDelay(3000, 5000); // 3–5 sekund
+
+                console.log('Clicking the button with ID "sendMass" (Calculate runtimes).'); // Diagnostický log
+                clickButtonById('sendMass');
+                await randomDelay(5000, 10000); // 5–10 sekund
+
+                console.log('Clicking the button with ID "sendMass" (Launch group 1).'); // Diagnostický log
+                clickButtonById('sendMass', 'sendGroup(0,false)'); // Druhé kliknutí
+
+                await randomDelay(180000, 300000); // 3–5 minut mezi cykly
+
+                console.log('Cycle complete. Restarting if enabled.'); // Diagnostický log
+            } catch (error) {
+                console.error('Error in script loop:', error); // Diagnostický log pro chyby
+            }
+        }
+        console.log('MassScavenge script stopped.'); // Diagnostický log
     }
 
-    // ========================
-    // FCE: Automatické klikání na odeslání jednotek
-    // ========================
-    let clickCount = 0; // Počet kliknutí
+    // Funkce pro načtení externího skriptu
+    function loadExternalScript() {
+        const scriptUrl = 'https://shinko-to-kuma.com/scripts/massScavenge.js';
+        var premiumBtnEnabled = false; // Nastavení dle požadavku
+        $.getScript(scriptUrl, () => {
+            console.log('External script loaded successfully:', scriptUrl); // Diagnostický log
+        }).fail(() => {
+            console.error('Failed to load external script:', scriptUrl); // Diagnostický log
+        });
+    }
 
-    function clickSendUnits() {
-        if (!isScriptActive) return; // Pokud je skript vypnutý, nic se nestane
-
-        const farmIcons = document.querySelectorAll(farmIconsSelector);
-        if (farmIcons.length > 0) {
-            const randomLink = farmIcons[Math.floor(Math.random() * farmIcons.length)];
-            randomLink.click(); // Kliknutí na náhodnou farmu
-
-            clickCount++;
-
-            if (clickCount >= sendUnitsTimes) {
-                location.reload(); // Obnovíme stránku po 5 odesláních
+    // Funkce pro kliknutí na tlačítko podle ID a volání onclick funkce
+    function clickButtonById(buttonId, customAction) {
+        const button = document.getElementById(buttonId);
+        if (button) {
+            console.log(`Button with ID "${buttonId}" found. Clicking it.`); // Diagnostický log
+            if (customAction) {
+                eval(customAction); // Volání specifické funkce
+                console.log(`Executed custom action: ${customAction}`);
             } else {
-                const randomDelay = Math.floor(Math.random() * (farmDelayMax - farmDelayMin + 1)) + farmDelayMin;
-                setTimeout(clickSendUnits, randomDelay); // Další kliknutí po náhodném zpoždění
+                button.click();
             }
+        } else {
+            console.error(`Button with ID "${buttonId}" not found!`); // Diagnostický log
         }
     }
 
-    // ========================
-    // Hlavní logika skriptu
-    // ========================
-
-    // Načteme stav skriptu z localStorage, abychom věděli, zda je aktivní i po obnovení stránky
-    const savedStatus = localStorage.getItem('autoFarmActive');
-    if (savedStatus === 'true') {
-        isScriptActive = true;
+    // Funkce pro náhodné zpoždění
+    function randomDelay(min, max) {
+        const delay = Math.floor(Math.random() * (max - min + 1)) + min;
+        console.log(`Delaying for ${delay} ms`); // Diagnostický log
+        return new Promise(resolve => setTimeout(resolve, delay));
     }
 
-    // Vytvoříme tlačítko pro zapnutí/vypnutí
-    createToggleButton();
-
-    // Funkce pro zahájení farmaření
-    function startFarming() {
-        if (isScriptActive) {
-            if (window.location.href.includes("screen=am_farm")) {
-                clickSendUnits(); // Na stránce farmy, začínáme odesílat jednotky
-            } else {
-                clickFarmHelper(); // Nejsem na stránce farmy, klikáme na pomocníka rabování
-            }
-        }
+    // Automatické spuštění skriptu při obnovení stránky, pokud je zapnutý
+    if (isEnabled) {
+        console.log('MassScavenge script was enabled on page load. Starting automatically.'); // Diagnostický log
+        startScript();
     }
-
-    // Načítání stavu a zahájení farmaření při načítání stránky
-    startFarming();
-
 })();
