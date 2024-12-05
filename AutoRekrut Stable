@@ -14,13 +14,15 @@
 
     console.log('[Stable Recruit] Script started');
 
-    // **Uložení a načítání dat z localStorage**
+    // **Uložení a načítání dat z localStorage pro Stable**
     function saveData(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
+        const prefix = 'stable_'; // Prefix pro Stable
+        localStorage.setItem(prefix + key, JSON.stringify(value));
     }
 
     function loadData(key, defaultValue) {
-        const data = localStorage.getItem(key);
+        const prefix = 'stable_'; // Prefix pro Stable
+        const data = localStorage.getItem(prefix + key);
         return data ? JSON.parse(data) : defaultValue;
     }
 
@@ -29,7 +31,7 @@
         console.log(`[Stable Recruit] ${message}`);
     }
 
-    // **Vytvoření tlačítka ON/OFF**
+    // **Vytvoření tlačítka ON/OFF pro Stable**
     const recruitButton = document.createElement('button'); // Interní název tlačítka přejmenován na recruitButton
     recruitButton.id = 'autoRekrutButton';
     const scriptStatus = loadData('scriptStatus', false);
