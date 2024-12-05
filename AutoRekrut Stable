@@ -3,7 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      1.0
 // @description  Automates stable recruitment in Tribal Wars for light and heavy cavalry.
-// @author       Wwwww
+// @author       Wwwwě
 // @match        https://*/game.php?village=*screen=stable*
 // @grant        none
 // @icon         https://dscs.innogamescdn.com/asset/07220f21/graphic/buildings/stable.png
@@ -14,22 +14,24 @@
 
     console.log('[Stable Recruit] Script started');
 
+    // **Uložení a načítání dat z localStorage pro Stable**
     function saveData(key, value) {
-        const prefix = 'stable_';
+        const prefix = 'stable_'; // Prefix pro Stable
         localStorage.setItem(prefix + key, JSON.stringify(value));
     }
 
     function loadData(key, defaultValue) {
-        const prefix = 'stable_';
+        const prefix = 'stable_'; // Prefix pro Stable
         const data = localStorage.getItem(prefix + key);
         return data ? JSON.parse(data) : defaultValue;
     }
 
+    // **Logování akcí**
     function log(message) {
         console.log(`[Stable Recruit] ${message}`);
     }
 
-    // **Vytvoření tabulky s tlačítkem ON/OFF a časem**
+    // **Vytvoření tabulky a tlačítka**
     const tableContainer = document.createElement('div');
     tableContainer.style.position = 'fixed';
     tableContainer.style.left = '10px';
@@ -40,22 +42,21 @@
     tableContainer.style.borderRadius = '8px';
     tableContainer.style.backgroundColor = '#F5DEB3';
     tableContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-    tableContainer.style.zIndex = '1000';
 
     const table = document.createElement('table');
 
-    // **Řádek pro tlačítko ON/OFF**
-    const scriptStatus = loadData('scriptStatus', false);
+    // **Tlačítko ON/OFF (první řádek v tabulce)**
     const recruitButton = document.createElement('button');
     recruitButton.id = 'autoRekrutButton';
+    const scriptStatus = loadData('scriptStatus', false);
     recruitButton.textContent = scriptStatus ? 'Stable - ON' : 'Stable - OFF';
     recruitButton.style.backgroundColor = scriptStatus ? 'green' : 'red';
-    recruitButton.style.color = 'white';
+    recruitButton.style.padding = '5px';
     recruitButton.style.border = 'none';
     recruitButton.style.borderRadius = '5px';
-    recruitButton.style.padding = '10px';
+    recruitButton.style.color = 'white';
     recruitButton.style.cursor = 'pointer';
-
+    recruitButton.style.fontSize = '14px';
     recruitButton.onclick = function () {
         const isOn = recruitButton.textContent === 'Stable - ON';
         recruitButton.textContent = isOn ? 'Stable - OFF' : 'Stable - ON';
@@ -67,24 +68,9 @@
 
     const buttonRow = table.insertRow();
     const buttonCell = buttonRow.insertCell();
-    buttonCell.colSpan = 2; // Sloučení buňky přes dva sloupce
+    buttonCell.colSpan = 2;
+    buttonCell.style.textAlign = 'center';
     buttonCell.appendChild(recruitButton);
-
-    // **Řádek pro časové vstupy**
-    const recruitmentTimeInput = document.createElement('input');
-    recruitmentTimeInput.type = 'text';
-    recruitmentTimeInput.placeholder = 'mm:ss';
-    recruitmentTimeInput.value = loadData('timeValue', '00:00');
-    recruitmentTimeInput.style.marginTop = '10px';
-    recruitmentTimeInput.style.padding = '5px';
-    recruitmentTimeInput.style.width = '100px';
-    recruitmentTimeInput.onchange = () => saveData('timeValue', recruitmentTimeInput.value);
-
-    const timeRow = table.insertRow();
-    const timeLabelCell = timeRow.insertCell();
-    timeLabelCell.textContent = 'Recruit Time:';
-    const timeInputCell = timeRow.insertCell();
-    timeInputCell.appendChild(recruitmentTimeInput);
 
     // **Checkbox pro light cavalry**
     const lightCheckbox = document.createElement('input');
@@ -99,9 +85,8 @@
     lightImage.style.marginRight = '5px';
 
     const lightRow = table.insertRow();
-    const lightCell = lightRow.insertCell();
-    lightCell.appendChild(lightImage);
-    lightCell.appendChild(lightCheckbox);
+    lightRow.insertCell().appendChild(lightImage);
+    lightRow.insertCell().appendChild(lightCheckbox);
 
     // **Checkbox pro heavy cavalry**
     const heavyCheckbox = document.createElement('input');
@@ -116,13 +101,24 @@
     heavyImage.style.marginRight = '5px';
 
     const heavyRow = table.insertRow();
-    const heavyCell = heavyRow.insertCell();
-    heavyCell.appendChild(heavyImage);
-    heavyCell.appendChild(heavyCheckbox);
+    heavyRow.insertCell().appendChild(heavyImage);
+    heavyRow.insertCell().appendChild(heavyCheckbox);
+
+    // **Časový vstup**
+    const recruitmentTimeInput = document.createElement('input');
+    recruitmentTimeInput.type = 'text';
+    recruitmentTimeInput.placeholder = 'mm:ss';
+    recruitmentTimeInput.value = loadData('timeValue', '00:00');
+    recruitmentTimeInput.onchange = () => saveData('timeValue', recruitmentTimeInput.value);
+
+    const timeRow = table.insertRow();
+    timeRow.insertCell().textContent = 'Wait Time:';
+    timeRow.insertCell().appendChild(recruitmentTimeInput);
 
     tableContainer.appendChild(table);
     document.body.appendChild(tableContainer);
 
+    // **Funkce pro spuštění skriptu**
     async function startScript() {
         if (!loadData('scriptStatus', false)) return;
 
