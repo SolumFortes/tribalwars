@@ -1,0 +1,188 @@
+// ==UserScript==
+// @name         AutoFarm FarmGot
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Automatic farming with randomized actions, persistent toggle state, configurable delay, and improved timing.
+// @author       Wwwww
+// @match        https://*/game.php?village=*&screen=am_farm
+// @grant        none
+// @icon         https://dscs.innogamescdn.com/asset/07220f21/graphic/command/attack.png
+// ==/UserScript==
+
+(async function () {
+    'use strict';
+
+    // Default delay in minutes and seconds (if no user input)
+    let delayMinutes = parseInt(localStorage.getItem('autoFarmDelayMinutes')) || 10;
+    let delaySeconds = parseInt(localStorage.getItem('autoFarmDelaySeconds')) || 0;
+
+    // Load script state from localStorage
+    let isAutoFarmEnabled = JSON.parse(localStorage.getItem('autoFarmEnabled')) || false;
+
+    // Function to wait for a random amount of time between min and max milliseconds
+    const wait = (min, max) => new Promise(resolve => setTimeout(resolve, Math.random() * (max - min) + min));
+
+    // Function to wait for an element to appear
+    async function waitForElement(selector, timeout = 10000) {
+        const startTime = Date.now();
+        while (Date.now() - startTime < timeout) {
+            const element = document.querySelector(selector);
+            if (element) {
+                return element;
+            }
+            await wait(200, 500); // Wait a short random interval before checking again
+        }
+        throw new Error(`Element with selector "${selector}" not found within ${timeout}ms.`);
+    }
+
+    // Function to load external script dynamically
+    function loadExternalScript(url) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = url;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    // Create a container for the button and input field
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '10px';
+    container.style.top = '40%';
+    container.style.transform = 'translateY(-50%)';
+    container.style.padding = '10px';
+    container.style.backgroundColor = '#d2b48c'; // Light brown color
+    container.style.border = '1px solid #8b4513'; // Darker brown border
+    container.style.borderRadius = '5px';
+    container.style.boxShadow = '2px 2px 5px rgba(0,0,0,0.2)';
+    container.style.zIndex = '1000';
+    document.body.appendChild(container);
+
+    // Create and style toggle button
+    const button = document.createElement('button');
+    button.id = 'autoFarmButton';
+    button.style.display = 'block';
+    button.style.marginBottom = '10px';
+    button.style.width = '100%';
+    button.style.padding = '10px';
+    button.style.fontSize = '16px';
+    button.style.border = 'none';
+    button.style.borderRadius = '5px';
+    button.style.color = 'white';
+    button.style.cursor = 'pointer';
+    button.style.backgroundColor = isAutoFarmEnabled ? 'green' : 'red';
+    button.textContent = `AutoFarm - ${isAutoFarmEnabled ? 'ON' : 'OFF'}`;
+    container.appendChild(button);
+
+    // Create label for delay input
+    const delayLabel = document.createElement('label');
+    delayLabel.textContent = 'Delay (mm:ss)';
+    delayLabel.style.display = 'block';
+    delayLabel.style.marginBottom = '5px';
+    delayLabel.style.fontSize = '14px';
+    delayLabel.style.color = '#000';
+    container.appendChild(delayLabel);
+
+    // Create input field for delay (minutes:seconds format)
+    const input = document.createElement('input');
+    input.id = 'autoFarmDelayInput';
+    input.type = 'text';
+    input.value = `${String(delayMinutes).padStart(2, '0')}:${String(delaySeconds).padStart(2, '0')}`;
+    input.style.display = 'block';
+    input.style.width = '100%';
+    input.style.padding = '5px';
+    input.style.fontSize = '14px';
+    input.style.border = '1px solid gray';
+    input.style.borderRadius = '5px';
+    input.style.boxSizing = 'border-box';
+    input.title = 'Set delay in minutes:seconds format.';
+    container.appendChild(input);
+
+    // Save delay to localStorage on input change
+    input.addEventListener('change', () => {
+        const [minutes, seconds] = input.value.split(':').map(num => parseInt(num, 10));
+        if (!isNaN(minutes) && !isNaN(seconds)) {
+            delayMinutes = minutes;
+            delaySeconds = seconds;
+            localStorage.setItem('autoFarmDelayMinutes', delayMinutes);
+            localStorage.setItem('autoFarmDelaySeconds', delaySeconds);
+            console.log(`Delay set to ${String(delayMinutes).padStart(2, '0')}:${String(delaySeconds).padStart(2, '0')}.`);
+        } else {
+            console.log('Invalid input. Please use mm:ss format.');
+        }
+    });
+
+    // Function to toggle AutoFarm
+    function toggleAutoFarm() {
+        isAutoFarmEnabled = !isAutoFarmEnabled;
+        localStorage.setItem('autoFarmEnabled', JSON.stringify(isAutoFarmEnabled)); // Save state
+        button.style.backgroundColor = isAutoFarmEnabled ? 'green' : 'red';
+        button.textContent = `AutoFarm - ${isAutoFarmEnabled ? 'ON' : 'OFF'}`;
+
+        if (isAutoFarmEnabled) {
+            console.log('AutoFarm enabled.');
+            startAutoFarm();
+        } else {
+            console.log('AutoFarm disabled.');
+        }
+    }
+
+    button.addEventListener('click', toggleAutoFarm);
+
+    // Function to start AutoFarm
+    async function startAutoFarm() {
+        // Load the external script (FarmGodCopy.js)
+        try {
+            await loadExternalScript('https://higamy.github.io/TW/Scripts/Approved/FarmGodCopy.js');
+            console.log('External script loaded successfully.');
+        } catch (error) {
+            console.error('Failed to load external script:', error);
+            return; // Exit if external script cannot be loaded
+        }
+
+        console.log('Starting AutoFarm process...');
+        while (isAutoFarmEnabled) {
+            try {
+                // Wait for and click the "Plan farms" button
+                console.log('Waiting for "Plan farms" button...');
+                const planFarmsButton = await waitForElement('input.btn.optionButton[value="Plan farms"]', 10000);
+                console.log('"Plan farms" button found. Clicking...');
+                await wait(500, 1500); // Random delay before clicking
+                planFarmsButton.click();
+
+                // Wait 4 seconds after clicking "Plan farms" to give time for the page to load
+                console.log('Waiting for 4 seconds after clicking "Plan farms"...');
+                await wait(4000, 5000); // 4 seconds wait
+
+                // Click farming buttons
+                let farmButtons = document.querySelectorAll('.farmGod_icon.farm_icon.farm_icon_a, .farmGod_icon.farm_icon.farm_icon_b');
+                while (farmButtons.length > 0) {
+                    for (const button of farmButtons) {
+                        if (!isAutoFarmEnabled) break; // Stop farming if disabled
+                        console.log('Clicking a farm button...');
+                        await wait(200, 1000); // Random delay between clicks
+                        button.click();
+                    }
+                    farmButtons = document.querySelectorAll('.farmGod_icon.farm_icon.farm_icon_a, .farmGod_icon.farm_icon.farm_icon_b');
+                }
+
+                // No buttons left, wait before refreshing
+                if (farmButtons.length === 0) {
+                    console.log(`No more farm buttons. Waiting for ${String(delayMinutes).padStart(2, '0')}:${String(delaySeconds).padStart(2, '0')} before refresh...`);
+                    const totalDelayMilliseconds = (delayMinutes * 60 + delaySeconds) * 1000;
+                    await wait(totalDelayMilliseconds, totalDelayMilliseconds + 10000); // Randomized wait
+                    location.reload(); // Refresh the page
+                }
+            } catch (error) {
+                console.error('Error during AutoFarm:', error);
+            }
+        }
+    }
+
+    // Start farming if it was enabled before page reload
+    if (isAutoFarmEnabled) {
+        startAutoFarm();
+    }
+})();
