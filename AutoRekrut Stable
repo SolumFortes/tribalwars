@@ -3,7 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      1.0
 // @description  Automates stable recruitment in Tribal Wars for light and heavy cavalry.
-// @author       Wwwww
+// @author       Wwwwě
 // @match        https://*/game.php?village=*screen=stable*
 // @grant        none
 // @icon         https://dscs.innogamescdn.com/asset/07220f21/graphic/buildings/stable.png
@@ -30,33 +30,33 @@
     }
 
     // **Vytvoření tlačítka ON/OFF**
-    const button = document.createElement('button');
-    button.id = 'autoRekrutButton';
+    const recruitButton = document.createElement('button'); // Interní název tlačítka přejmenován na recruitButton
+    recruitButton.id = 'autoRekrutButton';
     const scriptStatus = loadData('scriptStatus', false);
-    button.textContent = scriptStatus ? 'Stable - ON' : 'Stable - OFF';
-    button.style.backgroundColor = scriptStatus ? 'green' : 'red';
-    button.style.position = 'fixed';
-    button.style.left = '10px';
-    button.style.top = '50%';
-    button.style.transform = 'translateY(-50%)';
-    button.style.padding = '10px';
-    button.style.fontSize = '16px';
-    button.style.border = 'none';
-    button.style.borderRadius = '5px';
-    button.style.color = 'white';
-    button.style.cursor = 'pointer';
-    button.style.zIndex = '1000';
+    recruitButton.textContent = scriptStatus ? 'Stable - ON' : 'Stable - OFF';
+    recruitButton.style.backgroundColor = scriptStatus ? 'green' : 'red';
+    recruitButton.style.position = 'fixed';
+    recruitButton.style.left = '10px';
+    recruitButton.style.top = '50%';
+    recruitButton.style.transform = 'translateY(-50%)';
+    recruitButton.style.padding = '10px';
+    recruitButton.style.fontSize = '16px';
+    recruitButton.style.border = 'none';
+    recruitButton.style.borderRadius = '5px';
+    recruitButton.style.color = 'white';
+    recruitButton.style.cursor = 'pointer';
+    recruitButton.style.zIndex = '1000';
 
-    button.onclick = function () {
-        const isOn = button.textContent === 'Stable - ON';
-        button.textContent = isOn ? 'Stable - OFF' : 'Stable - ON';
-        button.style.backgroundColor = isOn ? 'red' : 'green';
+    recruitButton.onclick = function () {
+        const isOn = recruitButton.textContent === 'Stable - ON';
+        recruitButton.textContent = isOn ? 'Stable - OFF' : 'Stable - ON';
+        recruitButton.style.backgroundColor = isOn ? 'red' : 'green';
         saveData('scriptStatus', !isOn);
         log(`Script turned ${isOn ? 'OFF' : 'ON'}`);
         if (!isOn) startScript();
     };
 
-    document.body.appendChild(button);
+    document.body.appendChild(recruitButton);
 
     // **Vytvoření tabulky pro nastavení**
     const tableContainer = document.createElement('div');
@@ -106,16 +106,16 @@
     heavyCell.appendChild(heavyImage);
     heavyCell.appendChild(heavyCheckbox);
 
-    // **Časový vstup**
-    const timeInput = document.createElement('input');
-    timeInput.type = 'text';
-    timeInput.placeholder = 'mm:ss';
-    timeInput.value = loadData('timeValue', '00:00');
-    timeInput.onchange = () => saveData('timeValue', timeInput.value);
+    // **Časový vstup (nové jméno pole)**
+    const recruitmentTimeInput = document.createElement('input'); // Přejmenováno na recruitmentTimeInput
+    recruitmentTimeInput.type = 'text';
+    recruitmentTimeInput.placeholder = 'mm:ss';
+    recruitmentTimeInput.value = loadData('timeValue', '00:00');
+    recruitmentTimeInput.onchange = () => saveData('timeValue', recruitmentTimeInput.value);
 
     const timeRow = table.insertRow();
     timeRow.insertCell().colSpan = 2;
-    timeRow.insertCell().appendChild(timeInput);
+    timeRow.insertCell().appendChild(recruitmentTimeInput);
 
     tableContainer.appendChild(table);
     document.body.appendChild(tableContainer);
@@ -128,8 +128,8 @@
         try {
             const isLightChecked = lightCheckbox.checked;
             const isHeavyChecked = heavyCheckbox.checked;
-            const timeValue = loadData('timeValue', '00:00');
-            const [minutes, seconds] = timeValue.split(':').map(Number);
+            const recruitmentTimeValue = loadData('timeValue', '00:00');
+            const [minutes, seconds] = recruitmentTimeValue.split(':').map(Number);
             const timeInMilliseconds = (minutes * 60 + seconds) * 1000;
 
             log(`Light cavalry checked: ${isLightChecked}`);
