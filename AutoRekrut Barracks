@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Barracks Recruit
 // @namespace    http://tampermonkey.net/
-// @version      1.3
-// @description  Automates barracks recruitment in Tribal Wars.
-// @author       Wwww
-// @match        https://*/game.php?village=*&screen=barracks*
+// @version      1.0
+// @description  Automates barracks recruitment for light and heavy infantry in Tribal Wars.
+// @author       Wwwww
+// @match        https://*/game.php?village=*screen=barracks*
 // @grant        none
 // @icon         https://dscs.innogamescdn.com/asset/07220f21/graphic/buildings/barracks.png
 // ==/UserScript==
@@ -14,13 +14,15 @@
 
     console.log('[Barracks Recruit] Script started');
 
-    // **Uložení a načítání dat z localStorage**
+    // **Uložení a načítání dat z localStorage pro Barracks**
     function saveData(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
+        const prefix = 'barracks_'; // Prefix pro Barracks
+        localStorage.setItem(prefix + key, JSON.stringify(value));
     }
 
     function loadData(key, defaultValue) {
-        const data = localStorage.getItem(key);
+        const prefix = 'barracks_'; // Prefix pro Barracks
+        const data = localStorage.getItem(prefix + key);
         return data ? JSON.parse(data) : defaultValue;
     }
 
@@ -29,34 +31,34 @@
         console.log(`[Barracks Recruit] ${message}`);
     }
 
-    // **Vytvoření tlačítka ON/OFF**
-    const button = document.createElement('button');
-    button.id = 'autoRekrutButton';
+    // **Vytvoření tlačítka ON/OFF pro Barracks**
+    const recruitButton = document.createElement('button'); // Interní název tlačítka přejmenován na recruitButton
+    recruitButton.id = 'autoRekrutButton';
     const scriptStatus = loadData('scriptStatus', false);
-    button.textContent = scriptStatus ? 'Barracks - ON' : 'Barracks - OFF';
-    button.style.backgroundColor = scriptStatus ? 'green' : 'red';
-    button.style.position = 'fixed';
-    button.style.left = '10px';
-    button.style.top = '50%';
-    button.style.transform = 'translateY(-50%)';
-    button.style.padding = '10px';
-    button.style.fontSize = '16px';
-    button.style.border = 'none';
-    button.style.borderRadius = '5px';
-    button.style.color = 'white';
-    button.style.cursor = 'pointer';
-    button.style.zIndex = '1000';
+    recruitButton.textContent = scriptStatus ? 'Barracks - ON' : 'Barracks - OFF';
+    recruitButton.style.backgroundColor = scriptStatus ? 'green' : 'red';
+    recruitButton.style.position = 'fixed';
+    recruitButton.style.left = '10px';
+    recruitButton.style.top = '50%';
+    recruitButton.style.transform = 'translateY(-50%)';
+    recruitButton.style.padding = '10px';
+    recruitButton.style.fontSize = '16px';
+    recruitButton.style.border = 'none';
+    recruitButton.style.borderRadius = '5px';
+    recruitButton.style.color = 'white';
+    recruitButton.style.cursor = 'pointer';
+    recruitButton.style.zIndex = '1000';
 
-    button.onclick = function () {
-        const isOn = button.textContent === 'Barracks - ON';
-        button.textContent = isOn ? 'Barracks - OFF' : 'Barracks - ON';
-        button.style.backgroundColor = isOn ? 'red' : 'green';
+    recruitButton.onclick = function () {
+        const isOn = recruitButton.textContent === 'Barracks - ON';
+        recruitButton.textContent = isOn ? 'Barracks - OFF' : 'Barracks - ON';
+        recruitButton.style.backgroundColor = isOn ? 'red' : 'green';
         saveData('scriptStatus', !isOn);
         log(`Script turned ${isOn ? 'OFF' : 'ON'}`);
         if (!isOn) startScript();
     };
 
-    document.body.appendChild(button);
+    document.body.appendChild(recruitButton);
 
     // **Vytvoření tabulky pro nastavení**
     const tableContainer = document.createElement('div');
@@ -72,50 +74,50 @@
 
     const table = document.createElement('table');
 
-    // **Checkbox pro spear**
-    const spearCheckbox = document.createElement('input');
-    spearCheckbox.type = 'checkbox';
-    spearCheckbox.checked = loadData('spearChecked', false);
-    spearCheckbox.onchange = () => saveData('spearChecked', spearCheckbox.checked);
+    // **Checkbox pro light cavalry**
+    const lightCheckbox = document.createElement('input');
+    lightCheckbox.type = 'checkbox';
+    lightCheckbox.checked = loadData('lightChecked', false);
+    lightCheckbox.onchange = () => saveData('lightChecked', lightCheckbox.checked);
 
-    const spearImage = document.createElement('img');
-    spearImage.src = 'https://dscs.innogamescdn.com/asset/07220f21/graphic/unit/unit_spear.png';
-    spearImage.style.width = '17px';
-    spearImage.style.height = '17px';
-    spearImage.style.marginRight = '5px';
+    const lightImage = document.createElement('img');
+    lightImage.src = 'https://dscs.innogamescdn.com/asset/07220f21/graphic/unit/unit_light.png';
+    lightImage.style.width = '17px';
+    lightImage.style.height = '17px';
+    lightImage.style.marginRight = '5px';
 
-    const spearRow = table.insertRow();
-    const spearCell = spearRow.insertCell();
-    spearCell.appendChild(spearImage);
-    spearCell.appendChild(spearCheckbox);
+    const lightRow = table.insertRow();
+    const lightCell = lightRow.insertCell();
+    lightCell.appendChild(lightImage);
+    lightCell.appendChild(lightCheckbox);
 
-    // **Checkbox pro axe**
-    const axeCheckbox = document.createElement('input');
-    axeCheckbox.type = 'checkbox';
-    axeCheckbox.checked = loadData('axeChecked', false);
-    axeCheckbox.onchange = () => saveData('axeChecked', axeCheckbox.checked);
+    // **Checkbox pro heavy cavalry**
+    const heavyCheckbox = document.createElement('input');
+    heavyCheckbox.type = 'checkbox';
+    heavyCheckbox.checked = loadData('heavyChecked', false);
+    heavyCheckbox.onchange = () => saveData('heavyChecked', heavyCheckbox.checked);
 
-    const axeImage = document.createElement('img');
-    axeImage.src = 'https://dscs.innogamescdn.com/asset/07220f21/graphic/unit/unit_axe.png';
-    axeImage.style.width = '17px';
-    axeImage.style.height = '17px';
-    axeImage.style.marginRight = '5px';
+    const heavyImage = document.createElement('img');
+    heavyImage.src = 'https://dscs.innogamescdn.com/asset/07220f21/graphic/unit/unit_heavy.png';
+    heavyImage.style.width = '17px';
+    heavyImage.style.height = '17px';
+    heavyImage.style.marginRight = '5px';
 
-    const axeRow = table.insertRow();
-    const axeCell = axeRow.insertCell();
-    axeCell.appendChild(axeImage);
-    axeCell.appendChild(axeCheckbox);
+    const heavyRow = table.insertRow();
+    const heavyCell = heavyRow.insertCell();
+    heavyCell.appendChild(heavyImage);
+    heavyCell.appendChild(heavyCheckbox);
 
-    // **Časový vstup**
-    const timeInput = document.createElement('input');
-    timeInput.type = 'text';
-    timeInput.placeholder = 'mm:ss';
-    timeInput.value = loadData('timeValue', '00:00');
-    timeInput.onchange = () => saveData('timeValue', timeInput.value);
+    // **Časový vstup (nové jméno pole)**
+    const recruitmentTimeInput = document.createElement('input'); // Přejmenováno na recruitmentTimeInput
+    recruitmentTimeInput.type = 'text';
+    recruitmentTimeInput.placeholder = 'mm:ss';
+    recruitmentTimeInput.value = loadData('timeValue', '00:00');
+    recruitmentTimeInput.onchange = () => saveData('timeValue', recruitmentTimeInput.value);
 
     const timeRow = table.insertRow();
     timeRow.insertCell().colSpan = 2;
-    timeRow.insertCell().appendChild(timeInput);
+    timeRow.insertCell().appendChild(recruitmentTimeInput);
 
     tableContainer.appendChild(table);
     document.body.appendChild(tableContainer);
@@ -126,24 +128,24 @@
 
         log('Script running...');
         try {
-            const isSpearChecked = spearCheckbox.checked;
-            const isAxeChecked = axeCheckbox.checked;
-            const timeValue = loadData('timeValue', '00:00');
-            const [minutes, seconds] = timeValue.split(':').map(Number);
+            const isLightChecked = lightCheckbox.checked;
+            const isHeavyChecked = heavyCheckbox.checked;
+            const recruitmentTimeValue = loadData('timeValue', '00:00');
+            const [minutes, seconds] = recruitmentTimeValue.split(':').map(Number);
             const timeInMilliseconds = (minutes * 60 + seconds) * 1000;
 
-            log(`Spear checked: ${isSpearChecked}`);
-            log(`Axe checked: ${isAxeChecked}`);
+            log(`Light cavalry checked: ${isLightChecked}`);
+            log(`Heavy cavalry checked: ${isHeavyChecked}`);
             log(`Wait time: ${timeInMilliseconds} ms`);
 
-            if (!isSpearChecked && !isAxeChecked) {
+            if (!isLightChecked && !isHeavyChecked) {
                 log('No unit type selected, stopping...');
                 await delay(30000); // Počkej 30 sekund
                 location.reload(); // Obnoví stránku
                 return;
             }
 
-            const unitType = isSpearChecked ? 'spear' : 'axe';
+            const unitType = isLightChecked ? 'light' : 'heavy';
             const inputField = document.querySelector(`#${unitType}_0`);
             const recruitButton = document.querySelector('.btn-recruit');
 
