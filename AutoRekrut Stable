@@ -1,134 +1,184 @@
 // ==UserScript==
-// @name         AutoRekrut Stable
+// @name         Stable Recruit
 // @namespace    http://tampermonkey.net/
-// @version      2.4
-// @description  Automatically recruits 1 light cavalry every 5 minutes in the game Tribal Wars.
-// @author       Wwww
+// @version      1.0
+// @description  Automates stable recruitment in Tribal Wars for light and heavy cavalry.
+// @author       Wwwww
 // @match        https://*/game.php?village=*screen=stable*
 // @grant        none
+// @icon         https://dscs.innogamescdn.com/asset/07220f21/graphic/buildings/stable.png
 // ==/UserScript==
 
 (function () {
     'use strict';
 
-    // Získání URL stáje
-    const server = window.location.hostname;
-    const villageId = new URLSearchParams(window.location.search).get('village');
-    const stableURL = `https://${server}/game.php?village=${villageId}&screen=stable`;
+    console.log('[Stable Recruit] Script started');
 
-    console.log(`[LOG] Aktuální URL: ${window.location.href}`);
-    console.log(`[LOG] Generované URL pro stáj: ${stableURL}`);
-
-    // Přesměrování na stáj, pokud tam nejsme
-    if (window.location.href !== stableURL) {
-        console.log('[LOG] Nejsem na stránce stáje, přesměrovávám...');
-        window.location.href = stableURL;
-        return;
+    // **Uložení a načítání dat z localStorage**
+    function saveData(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
     }
 
-    // Hlavní logika rekrutování
-    function mainLogic() {
-        console.log('[LOG] Nacházím se na stránce stáje, spouštím hlavní logiku.');
-
-        // Najdi pole pro lehkou jízdu
-        const lightInput = document.querySelector('#light_0');
-        if (lightInput) {
-            console.log('[LOG] Nastavuji počet lehké jízdy na 1...');
-            lightInput.value = '1';
-        } else {
-            console.warn('[WARNING] Pole pro zadání počtu lehké jízdy nebylo nalezeno. Čekám 30 sekund a poté restartuji skript...');
-            setTimeout(() => {
-                console.log('[LOG] Restartuji skript...');
-                window.location.reload(); // Restart stránky po 30 sekundách
-            }, 30000); // 30 sekund čekání
-            return;
-        }
-
-        // Najdi tlačítko Rekrutovat
-        const recruitButton = document.querySelector('.btn-recruit');
-        if (recruitButton) {
-            console.log('[LOG] Klikám na tlačítko Rekrutovat...');
-            recruitButton.click();
-        } else {
-            console.warn('[WARNING] Tlačítko Rekrutovat nebylo nalezeno. Čekám 30 sekund a poté restartuji skript...');
-            setTimeout(() => {
-                console.log('[LOG] Restartuji skript...');
-                window.location.reload(); // Restart stránky po 30 sekundách
-            }, 30000); // 30 sekund čekání
-            return;
-        }
-
-        // Pevný interval mezi cykly (5 minut)
-        const delay = 300000; // 300000 ms = 5 minut
-        console.log(`[LOG] Další akce proběhne za ${Math.round(delay / 1000)} sekund.`);
-        setTimeout(() => {
-            console.log('[LOG] Obnovuji stránku...');
-            window.location.reload();
-        }, delay);
+    function loadData(key, defaultValue) {
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : defaultValue;
     }
 
-    // Funkce pro spuštění skriptu
-    function startScript() {
-        console.log('[LOG] Stránka načtena. Spouštím hlavní logiku...');
-        mainLogic();
+    // **Logování akcí**
+    function log(message) {
+        console.log(`[Stable Recruit] ${message}`);
     }
 
-    // Funkce pro zastavení skriptu
-    function stopScript() {
-        console.log('[LOG] Skript byl vypnut.');
-    }
+    // **Vytvoření tlačítka ON/OFF**
+    const button = document.createElement('button');
+    button.id = 'autoRekrutButton';
+    const scriptStatus = loadData('scriptStatus', false);
+    button.textContent = scriptStatus ? 'Stable - ON' : 'Stable - OFF';
+    button.style.backgroundColor = scriptStatus ? 'green' : 'red';
+    button.style.position = 'fixed';
+    button.style.left = '10px';
+    button.style.top = '50%';
+    button.style.transform = 'translateY(-50%)';
+    button.style.padding = '10px';
+    button.style.fontSize = '16px';
+    button.style.border = 'none';
+    button.style.borderRadius = '5px';
+    button.style.color = 'white';
+    button.style.cursor = 'pointer';
+    button.style.zIndex = '1000';
 
-    // Uložení stavu tlačítka do LocalStorage
-    function saveButtonState(state) {
-        localStorage.setItem('autoRekrutState', state);
-    }
+    button.onclick = function () {
+        const isOn = button.textContent === 'Stable - ON';
+        button.textContent = isOn ? 'Stable - OFF' : 'Stable - ON';
+        button.style.backgroundColor = isOn ? 'red' : 'green';
+        saveData('scriptStatus', !isOn);
+        log(`Script turned ${isOn ? 'OFF' : 'ON'}`);
+        if (!isOn) startScript();
+    };
 
-    // Načtení stavu tlačítka z LocalStorage
-    function loadButtonState() {
-        return localStorage.getItem('autoRekrutState') || 'ON';
-    }
+    document.body.appendChild(button);
 
-    // Vytvoření tlačítka pro zapnutí/vypnutí
-    function createToggleButton() {
-        const button = document.createElement('button');
-        button.id = 'autoRekrutButton';
-        button.style.position = 'fixed';
-        button.style.left = '10px';
-        button.style.top = '50%';
-        button.style.transform = 'translateY(-50%)';
-        button.style.padding = '10px';
-        button.style.fontSize = '16px';
-        button.style.border = 'none';
-        button.style.borderRadius = '5px';
-        button.style.color = 'white';
-        button.style.cursor = 'pointer';
-        button.style.zIndex = '1000';
+    // **Vytvoření tabulky pro nastavení**
+    const tableContainer = document.createElement('div');
+    tableContainer.style.position = 'fixed';
+    tableContainer.style.left = '10px';
+    tableContainer.style.top = '60%';
+    tableContainer.style.transform = 'translateY(-50%)';
+    tableContainer.style.padding = '10px';
+    tableContainer.style.border = '2px solid #8B4513';
+    tableContainer.style.borderRadius = '8px';
+    tableContainer.style.backgroundColor = '#F5DEB3';
+    tableContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
 
-        const state = loadButtonState();
-        button.textContent = `AutoRekrut - ${state === 'ON' ? 'ON' : 'OFF'}`;
-        button.style.backgroundColor = state === 'ON' ? 'green' : 'red';
+    const table = document.createElement('table');
 
-        button.addEventListener('click', () => {
-            const newState = button.textContent.includes('ON') ? 'OFF' : 'ON';
-            button.textContent = `AutoRekrut - ${newState}`;
-            button.style.backgroundColor = newState === 'ON' ? 'green' : 'red';
-            saveButtonState(newState);
+    // **Checkbox pro light cavalry**
+    const lightCheckbox = document.createElement('input');
+    lightCheckbox.type = 'checkbox';
+    lightCheckbox.checked = loadData('lightChecked', false);
+    lightCheckbox.onchange = () => saveData('lightChecked', lightCheckbox.checked);
 
-            if (newState === 'ON') {
-                startScript();
-            } else {
-                stopScript();
+    const lightImage = document.createElement('img');
+    lightImage.src = 'https://dscs.innogamescdn.com/asset/07220f21/graphic/unit/unit_light.png';
+    lightImage.style.width = '17px';
+    lightImage.style.height = '17px';
+    lightImage.style.marginRight = '5px';
+
+    const lightRow = table.insertRow();
+    const lightCell = lightRow.insertCell();
+    lightCell.appendChild(lightImage);
+    lightCell.appendChild(lightCheckbox);
+
+    // **Checkbox pro heavy cavalry**
+    const heavyCheckbox = document.createElement('input');
+    heavyCheckbox.type = 'checkbox';
+    heavyCheckbox.checked = loadData('heavyChecked', false);
+    heavyCheckbox.onchange = () => saveData('heavyChecked', heavyCheckbox.checked);
+
+    const heavyImage = document.createElement('img');
+    heavyImage.src = 'https://dscs.innogamescdn.com/asset/07220f21/graphic/unit/unit_heavy.png';
+    heavyImage.style.width = '17px';
+    heavyImage.style.height = '17px';
+    heavyImage.style.marginRight = '5px';
+
+    const heavyRow = table.insertRow();
+    const heavyCell = heavyRow.insertCell();
+    heavyCell.appendChild(heavyImage);
+    heavyCell.appendChild(heavyCheckbox);
+
+    // **Časový vstup**
+    const timeInput = document.createElement('input');
+    timeInput.type = 'text';
+    timeInput.placeholder = 'mm:ss';
+    timeInput.value = loadData('timeValue', '00:00');
+    timeInput.onchange = () => saveData('timeValue', timeInput.value);
+
+    const timeRow = table.insertRow();
+    timeRow.insertCell().colSpan = 2;
+    timeRow.insertCell().appendChild(timeInput);
+
+    tableContainer.appendChild(table);
+    document.body.appendChild(tableContainer);
+
+    // **Funkce pro spuštění skriptu**
+    async function startScript() {
+        if (!loadData('scriptStatus', false)) return;
+
+        log('Script running...');
+        try {
+            const isLightChecked = lightCheckbox.checked;
+            const isHeavyChecked = heavyCheckbox.checked;
+            const timeValue = loadData('timeValue', '00:00');
+            const [minutes, seconds] = timeValue.split(':').map(Number);
+            const timeInMilliseconds = (minutes * 60 + seconds) * 1000;
+
+            log(`Light cavalry checked: ${isLightChecked}`);
+            log(`Heavy cavalry checked: ${isHeavyChecked}`);
+            log(`Wait time: ${timeInMilliseconds} ms`);
+
+            if (!isLightChecked && !isHeavyChecked) {
+                log('No unit type selected, stopping...');
+                await delay(30000); // Počkej 30 sekund
+                location.reload(); // Obnoví stránku
+                return;
             }
-        });
 
-        document.body.appendChild(button);
+            const unitType = isLightChecked ? 'light' : 'heavy';
+            const inputField = document.querySelector(`#${unitType}_0`);
+            const recruitButton = document.querySelector('.btn-recruit');
+
+            if (!inputField || !recruitButton) {
+                log(`Element not found for ${unitType}, waiting 30 seconds before refreshing...`);
+                await delay(30000); // Počkej 30 sekund
+                location.reload(); // Obnoví stránku
+                return;
+            }
+
+            inputField.value = 1;
+            log(`Set 1 ${unitType} in the recruit field`);
+            await randomDelay(500, 1000);
+            recruitButton.click();
+            log(`${unitType} recruited`);
+
+            log(`Waiting for ${timeInMilliseconds} ms before refreshing page...`);
+            await delay(timeInMilliseconds); // Počkej podle vyplněného času
+            location.reload(); // Obnoví stránku po uplynutí čekací doby
+        } catch (error) {
+            log(`Error: ${error.message}`);
+            await delay(30000); // Počkej 30 sekund před obnovením stránky
+            location.reload(); // Obnoví stránku
+        }
     }
 
-    // Inicializace tlačítka a skriptu
-    createToggleButton();
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
-    // Pokud je skript povolený, spustíme ho
-    if (loadButtonState() === 'ON') {
+    function randomDelay(min, max) {
+        return new Promise(resolve => setTimeout(resolve, Math.random() * (max - min) + min));
+    }
+
+    if (loadData('scriptStatus', false)) {
         startScript();
     }
 })();
