@@ -31,24 +31,32 @@
         console.log(`[Barracks Recruit] ${message}`);
     }
 
-    // **Vytvoření tlačítka ON/OFF pro Barracks**
-    const recruitButton = document.createElement('button'); // Interní název tlačítka přejmenován na recruitButton
+    // **Vytvoření tabulky a tlačítka**
+    const tableContainer = document.createElement('div');
+    tableContainer.style.position = 'fixed';
+    tableContainer.style.left = '10px';
+    tableContainer.style.top = '50%';
+    tableContainer.style.transform = 'translateY(-50%)';
+    tableContainer.style.padding = '10px';
+    tableContainer.style.border = '2px solid #8B4513';
+    tableContainer.style.borderRadius = '8px';
+    tableContainer.style.backgroundColor = '#F5DEB3';
+    tableContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+
+    const table = document.createElement('table');
+
+    // **Tlačítko ON/OFF (první řádek v tabulce)**
+    const recruitButton = document.createElement('button');
     recruitButton.id = 'autoRekrutButton';
     const scriptStatus = loadData('scriptStatus', false);
     recruitButton.textContent = scriptStatus ? 'Barracks - ON' : 'Barracks - OFF';
     recruitButton.style.backgroundColor = scriptStatus ? 'green' : 'red';
-    recruitButton.style.position = 'fixed';
-    recruitButton.style.left = '10px';
-    recruitButton.style.top = '50%';
-    recruitButton.style.transform = 'translateY(-50%)';
-    recruitButton.style.padding = '10px';
-    recruitButton.style.fontSize = '16px';
+    recruitButton.style.padding = '5px';
     recruitButton.style.border = 'none';
     recruitButton.style.borderRadius = '5px';
     recruitButton.style.color = 'white';
     recruitButton.style.cursor = 'pointer';
-    recruitButton.style.zIndex = '1000';
-
+    recruitButton.style.fontSize = '14px';
     recruitButton.onclick = function () {
         const isOn = recruitButton.textContent === 'Barracks - ON';
         recruitButton.textContent = isOn ? 'Barracks - OFF' : 'Barracks - ON';
@@ -58,21 +66,11 @@
         if (!isOn) startScript();
     };
 
-    document.body.appendChild(recruitButton);
-
-    // **Vytvoření tabulky pro nastavení**
-    const tableContainer = document.createElement('div');
-    tableContainer.style.position = 'fixed';
-    tableContainer.style.left = '10px';
-    tableContainer.style.top = '60%';
-    tableContainer.style.transform = 'translateY(-50%)';
-    tableContainer.style.padding = '10px';
-    tableContainer.style.border = '2px solid #8B4513';
-    tableContainer.style.borderRadius = '8px';
-    tableContainer.style.backgroundColor = '#F5DEB3';
-    tableContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-
-    const table = document.createElement('table');
+    const buttonRow = table.insertRow();
+    const buttonCell = buttonRow.insertCell();
+    buttonCell.colSpan = 2;
+    buttonCell.style.textAlign = 'center';
+    buttonCell.appendChild(recruitButton);
 
     // **Checkbox pro spear**
     const spearCheckbox = document.createElement('input');
@@ -87,9 +85,8 @@
     spearImage.style.marginRight = '5px';
 
     const spearRow = table.insertRow();
-    const spearCell = spearRow.insertCell();
-    spearCell.appendChild(spearImage);
-    spearCell.appendChild(spearCheckbox);
+    spearRow.insertCell().appendChild(spearImage);
+    spearRow.insertCell().appendChild(spearCheckbox);
 
     // **Checkbox pro axe**
     const axeCheckbox = document.createElement('input');
@@ -104,19 +101,18 @@
     axeImage.style.marginRight = '5px';
 
     const axeRow = table.insertRow();
-    const axeCell = axeRow.insertCell();
-    axeCell.appendChild(axeImage);
-    axeCell.appendChild(axeCheckbox);
+    axeRow.insertCell().appendChild(axeImage);
+    axeRow.insertCell().appendChild(axeCheckbox);
 
-    // **Časový vstup (nové jméno pole)**
-    const recruitmentTimeInput = document.createElement('input'); // Přejmenováno na recruitmentTimeInput
+    // **Časový vstup**
+    const recruitmentTimeInput = document.createElement('input');
     recruitmentTimeInput.type = 'text';
     recruitmentTimeInput.placeholder = 'mm:ss';
     recruitmentTimeInput.value = loadData('timeValue', '00:00');
     recruitmentTimeInput.onchange = () => saveData('timeValue', recruitmentTimeInput.value);
 
     const timeRow = table.insertRow();
-    timeRow.insertCell().colSpan = 2;
+    timeRow.insertCell().textContent = 'Wait Time:';
     timeRow.insertCell().appendChild(recruitmentTimeInput);
 
     tableContainer.appendChild(table);
@@ -140,8 +136,8 @@
 
             if (!isSpearChecked && !isAxeChecked) {
                 log('No unit type selected, stopping...');
-                await delay(30000); // Počkej 30 sekund
-                location.reload(); // Obnoví stránku
+                await delay(30000);
+                location.reload();
                 return;
             }
 
@@ -151,8 +147,8 @@
 
             if (!inputField || !recruitButton) {
                 log(`Element not found for ${unitType}, waiting 30 seconds before refreshing...`);
-                await delay(30000); // Počkej 30 sekund
-                location.reload(); // Obnoví stránku
+                await delay(30000);
+                location.reload();
                 return;
             }
 
@@ -163,12 +159,12 @@
             log(`${unitType} recruited`);
 
             log(`Waiting for ${timeInMilliseconds} ms before refreshing page...`);
-            await delay(timeInMilliseconds); // Počkej podle vyplněného času
-            location.reload(); // Obnoví stránku po uplynutí čekací doby
+            await delay(timeInMilliseconds);
+            location.reload();
         } catch (error) {
             log(`Error: ${error.message}`);
-            await delay(30000); // Počkej 30 sekund před obnovením stránky
-            location.reload(); // Obnoví stránku
+            await delay(30000);
+            location.reload();
         }
     }
 
