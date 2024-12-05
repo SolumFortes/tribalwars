@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         AutoFarm FarmGot
+// @name         AutoFarm FarmGod
 // @namespace    http://tampermonkey.net/
 // @version      1.0
 // @description  Automatic farming with randomized actions, persistent toggle state, configurable delay, and improved timing.
