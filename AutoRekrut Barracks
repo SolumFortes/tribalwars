@@ -2,8 +2,8 @@
 // @name         Barracks Recruit
 // @namespace    http://tampermonkey.net/
 // @version      1.0
-// @description  Automates barracks recruitment for light and heavy infantry in Tribal Wars.
-// @author       Wwwww
+// @description  Automates barracks recruitment for spear and axe units in Tribal Wars.
+// @author       Wwwwě
 // @match        https://*/game.php?village=*screen=barracks*
 // @grant        none
 // @icon         https://dscs.innogamescdn.com/asset/07220f21/graphic/buildings/barracks.png
@@ -74,39 +74,39 @@
 
     const table = document.createElement('table');
 
-    // **Checkbox pro light cavalry**
-    const lightCheckbox = document.createElement('input');
-    lightCheckbox.type = 'checkbox';
-    lightCheckbox.checked = loadData('lightChecked', false);
-    lightCheckbox.onchange = () => saveData('lightChecked', lightCheckbox.checked);
+    // **Checkbox pro spear**
+    const spearCheckbox = document.createElement('input');
+    spearCheckbox.type = 'checkbox';
+    spearCheckbox.checked = loadData('spearChecked', false);
+    spearCheckbox.onchange = () => saveData('spearChecked', spearCheckbox.checked);
 
-    const lightImage = document.createElement('img');
-    lightImage.src = 'https://dscs.innogamescdn.com/asset/07220f21/graphic/unit/unit_light.png';
-    lightImage.style.width = '17px';
-    lightImage.style.height = '17px';
-    lightImage.style.marginRight = '5px';
+    const spearImage = document.createElement('img');
+    spearImage.src = 'https://dscs.innogamescdn.com/asset/07220f21/graphic/unit/unit_spear.png';
+    spearImage.style.width = '17px';
+    spearImage.style.height = '17px';
+    spearImage.style.marginRight = '5px';
 
-    const lightRow = table.insertRow();
-    const lightCell = lightRow.insertCell();
-    lightCell.appendChild(lightImage);
-    lightCell.appendChild(lightCheckbox);
+    const spearRow = table.insertRow();
+    const spearCell = spearRow.insertCell();
+    spearCell.appendChild(spearImage);
+    spearCell.appendChild(spearCheckbox);
 
-    // **Checkbox pro heavy cavalry**
-    const heavyCheckbox = document.createElement('input');
-    heavyCheckbox.type = 'checkbox';
-    heavyCheckbox.checked = loadData('heavyChecked', false);
-    heavyCheckbox.onchange = () => saveData('heavyChecked', heavyCheckbox.checked);
+    // **Checkbox pro axe**
+    const axeCheckbox = document.createElement('input');
+    axeCheckbox.type = 'checkbox';
+    axeCheckbox.checked = loadData('axeChecked', false);
+    axeCheckbox.onchange = () => saveData('axeChecked', axeCheckbox.checked);
 
-    const heavyImage = document.createElement('img');
-    heavyImage.src = 'https://dscs.innogamescdn.com/asset/07220f21/graphic/unit/unit_heavy.png';
-    heavyImage.style.width = '17px';
-    heavyImage.style.height = '17px';
-    heavyImage.style.marginRight = '5px';
+    const axeImage = document.createElement('img');
+    axeImage.src = 'https://dscs.innogamescdn.com/asset/07220f21/graphic/unit/unit_axe.png';
+    axeImage.style.width = '17px';
+    axeImage.style.height = '17px';
+    axeImage.style.marginRight = '5px';
 
-    const heavyRow = table.insertRow();
-    const heavyCell = heavyRow.insertCell();
-    heavyCell.appendChild(heavyImage);
-    heavyCell.appendChild(heavyCheckbox);
+    const axeRow = table.insertRow();
+    const axeCell = axeRow.insertCell();
+    axeCell.appendChild(axeImage);
+    axeCell.appendChild(axeCheckbox);
 
     // **Časový vstup (nové jméno pole)**
     const recruitmentTimeInput = document.createElement('input'); // Přejmenováno na recruitmentTimeInput
@@ -128,24 +128,24 @@
 
         log('Script running...');
         try {
-            const isLightChecked = lightCheckbox.checked;
-            const isHeavyChecked = heavyCheckbox.checked;
+            const isSpearChecked = spearCheckbox.checked;
+            const isAxeChecked = axeCheckbox.checked;
             const recruitmentTimeValue = loadData('timeValue', '00:00');
             const [minutes, seconds] = recruitmentTimeValue.split(':').map(Number);
             const timeInMilliseconds = (minutes * 60 + seconds) * 1000;
 
-            log(`Light cavalry checked: ${isLightChecked}`);
-            log(`Heavy cavalry checked: ${isHeavyChecked}`);
+            log(`Spear checked: ${isSpearChecked}`);
+            log(`Axe checked: ${isAxeChecked}`);
             log(`Wait time: ${timeInMilliseconds} ms`);
 
-            if (!isLightChecked && !isHeavyChecked) {
+            if (!isSpearChecked && !isAxeChecked) {
                 log('No unit type selected, stopping...');
                 await delay(30000); // Počkej 30 sekund
                 location.reload(); // Obnoví stránku
                 return;
             }
 
-            const unitType = isLightChecked ? 'light' : 'heavy';
+            const unitType = isSpearChecked ? 'spear' : 'axe';
             const inputField = document.querySelector(`#${unitType}_0`);
             const recruitButton = document.querySelector('.btn-recruit');
 
