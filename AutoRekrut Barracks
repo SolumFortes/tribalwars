@@ -4,7 +4,7 @@
 // @version      1.0
 // @description  Automates barracks recruitment for spear and axe units in Tribal Wars.
 // @author       Wwwwě
-// @match        https://*/game.php?village=*screen=barracks*
+// @match        https://*/game.php?*screen=barracks*
 // @grant        none
 // @icon         https://dscs.innogamescdn.com/asset/07220f21/graphic/buildings/barracks.png
 // ==/UserScript==
