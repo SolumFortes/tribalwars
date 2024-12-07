@@ -1,0 +1,178 @@
+// ==UserScript==
+// @name         Automatický rekrut jednotek
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Automatizace rekrutu pro různé jednotky s nastavením času.
+// @author       Wwwww
+// @match        https://*/game.php?*screen=train*
+// @grant        none
+// @icon         https://dscs.innogamescdn.com/asset/07220f21/graphic/buildings/barracks.png
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // Přidání stylů pro tabulku
+    const style = document.createElement('style');
+    style.textContent = `
+        #customScriptContainer {
+            position: fixed;
+            top: 50px;
+            left: 20px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            font-family: Arial, sans-serif;
+            width: 320px;
+        }
+        #customScriptContainer h2 {
+            margin: 0;
+            padding: 10px;
+            background: #4CAF50;
+            color: #fff;
+            font-size: 16px;
+            text-align: center;
+            border-radius: 6px 6px 0 0;
+        }
+        #customScriptContainer label {
+            display: block;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+        #customScriptContainer input[type="text"] {
+            width: 80px; /* Změněná šířka textového pole */
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center; /* Zarovnání textu na střed */
+        }
+        #customScriptContainer .checkbox-group {
+            margin-top: 10px;
+        }
+        #customScriptContainer .checkbox-group label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        #customScriptContainer .checkbox-group input {
+            margin-right: 8px;
+        }
+        #customScriptContainer .column {
+            display: inline-block;
+            width: 45%;
+            vertical-align: top;
+        }
+        #customScriptContainer button {
+            margin-top: 15px;
+            padding: 10px;
+            width: 100%;
+            background: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        #customScriptContainer button:hover {
+            background: #45a049;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Vytvoření tabulky
+    const container = document.createElement('div');
+    container.id = 'customScriptContainer';
+    container.innerHTML = `
+        <h2>Automatický rekrut</h2>
+        <div class="column">
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="checkbox1"> Kopiník</label>
+                <input type="text" id="time1" placeholder="Čas (MM:SS)" maxlength="5">
+            </div>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="checkbox2"> Šermíř</label>
+                <input type="text" id="time2" placeholder="Čas (MM:SS)" maxlength="5">
+            </div>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="checkbox3"> Sekerník</label>
+                <input type="text" id="time3" placeholder="Čas (MM:SS)" maxlength="5">
+            </div>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="checkbox4"> Lučišník</label>
+                <input type="text" id="time4" placeholder="Čas (MM:SS)" maxlength="5">
+            </div>
+        </div>
+        <div class="column">
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="checkbox5"> Špeh</label>
+                <input type="text" id="time5" placeholder="Čas (MM:SS)" maxlength="5">
+            </div>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="checkbox6"> Lučišník na koni</label>
+                <input type="text" id="time6" placeholder="Čas (MM:SS)" maxlength="5">
+            </div>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="checkbox7"> Beranidlo</label>
+                <input type="text" id="time7" placeholder="Čas (MM:SS)" maxlength="5">
+            </div>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="checkbox8"> Katapult</label>
+                <input type="text" id="time8" placeholder="Čas (MM:SS)" maxlength="5">
+            </div>
+        </div>
+        <button id="recruitButton">Rekrutovat</button>
+    `;
+    document.body.appendChild(container);
+
+    // Logika pro zpracování kliknutí na tlačítko
+    document.getElementById('recruitButton').addEventListener('click', () => {
+        const selectedUnits = [];
+        const times = [
+            document.getElementById('time1').value,
+            document.getElementById('time2').value,
+            document.getElementById('time3').value,
+            document.getElementById('time4').value,
+            document.getElementById('time5').value,
+            document.getElementById('time6').value,
+            document.getElementById('time7').value,
+            document.getElementById('time8').value
+        ];
+        const checkboxes = [
+            document.getElementById('checkbox1'),
+            document.getElementById('checkbox2'),
+            document.getElementById('checkbox3'),
+            document.getElementById('checkbox4'),
+            document.getElementById('checkbox5'),
+            document.getElementById('checkbox6'),
+            document.getElementById('checkbox7'),
+            document.getElementById('checkbox8')
+        ];
+        const unitNames = [
+            'Kopiník', 'Šermíř', 'Sekerník', 'Lučišník', 'Špeh', 'Lučišník na koni', 'Beranidlo', 'Katapult'
+        ];
+
+        checkboxes.forEach((checkbox, index) => {
+            if (checkbox.checked) {
+                const time = times[index];
+                if (/^\d{2}:\d{2}$/.test(time)) { // Ověření formátu MM:SS
+                    selectedUnits.push(`${unitNames[index]}: ${time}`);
+                } else {
+                    alert(`Nesprávný časový formát pro ${unitNames[index]}. Použijte MM:SS.`);
+                }
+            }
+        });
+
+        if (selectedUnits.length > 0) {
+            alert(`Rekrutuji jednotky:\n${selectedUnits.join('\n')}`);
+            // Zde můžete přidat kód pro skutečné odeslání rekrutu.
+        } else {
+            alert('Vyberte jednotky a nastavte jejich časy.');
+        }
+    });
+})();
