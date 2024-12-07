@@ -1,12 +1,3 @@
-// ==UserScript==
-// @name         Tabulka
-// @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Čistá tabulka ve hře Tribal Wars.
-// @author       Wwww
-// @match        https://*/game.php?*screen=overview*
-// @grant        none
-// ==/UserScript==
 
 (function() {
     'use strict';
