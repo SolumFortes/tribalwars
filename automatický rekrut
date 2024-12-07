@@ -6,7 +6,7 @@
 // @author       Wwwww
 // @match        https://*/game.php?*screen=train*
 // @grant        none
-// @icon         https://dscs.innogamescdn.com/asset/07220f21/graphic/buildings/barracks.png
+// @icon         https://*/game.php?*screen=train*
 // ==/UserScript==
 
 (function() {
