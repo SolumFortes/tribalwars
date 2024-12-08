@@ -1,2 +1,10 @@
-# tribalwars
-Tribal wars - tempermonkey scripts
+https://raw.githubusercontent.com/SolumFortes/Automaticky-rekrutace/refs/heads/main/Beranidlo
+https://raw.githubusercontent.com/SolumFortes/Automaticky-rekrutace/refs/heads/main/Katapult
+https://raw.githubusercontent.com/SolumFortes/Automaticky-rekrutace/refs/heads/main/Kopinik
+https://raw.githubusercontent.com/SolumFortes/Automaticky-rekrutace/refs/heads/main/Lehka_kavalerie
+https://raw.githubusercontent.com/SolumFortes/Automaticky-rekrutace/refs/heads/main/Lucisnik
+https://raw.githubusercontent.com/SolumFortes/Automaticky-rekrutace/refs/heads/main/Lucisnik_na_koni
+https://raw.githubusercontent.com/SolumFortes/Automaticky-rekrutace/refs/heads/main/Sekernik
+https://raw.githubusercontent.com/SolumFortes/Automaticky-rekrutace/refs/heads/main/Tabulka
+https://raw.githubusercontent.com/SolumFortes/Automaticky-rekrutace/refs/heads/main/Sermir
+https://raw.githubusercontent.com/SolumFortes/Automaticky-rekrutace/refs/heads/main/Speh
